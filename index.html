@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>JEE Command Centre</title>
+<!-- PWA -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JCC">
+<meta name="theme-color" content="#080810">
+<link rel="manifest" href="manifest.json">
+<!-- PWA Icons (inline fallback) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%23080810'/><text x='96' y='130' font-size='100' text-anchor='middle'>⚡</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -3999,14 +4008,26 @@ function countUp(el, target, suffix='', duration=600) {
 </div><!-- /mainApp -->
 
 
-<script>
+<script type="module">
 // ═══════════════════════════════════════════════════════
-//  PIN CLOUD SYNC SYSTEM  — uses JSONBin.io (free)
+//  PIN CLOUD SYNC SYSTEM  — Firebase Firestore
 // ═══════════════════════════════════════════════════════
 
-// Uses JSONBlob.com — 100% free, no signup, no API key needed
-// Each user gets a blob stored under their PIN hash in localStorage
-const BLOB_BASE = 'https://jsonblob.com/api/jsonBlob';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBw0HanihJkMnNAEDDiGMV5k5b8HanihJk",
+  authDomain: "jeecc-a77f2.firebaseapp.com",
+  projectId: "jeecc-a77f2",
+  storageBucket: "jeecc-a77f2.firebasestorage.app",
+  messagingSenderId: "802580338406",
+  appId: "1:802580338406:web:8ae85538016b4b3f8c2d1a",
+  measurementId: "G-9ZSJEDCPJX"
+};
+
+const _fbApp = initializeApp(firebaseConfig);
+const _db = getFirestore(_fbApp);
 
 const SYNC_KEYS_PATTERNS = [
   /^tasks_/,/^custom_/,/^attended_/,/^studyTime_/,
@@ -4014,11 +4035,11 @@ const SYNC_KEYS_PATTERNS = [
 ];
 
 let _pinHash = null;
-let _binId = null;   // jsonblob blob ID
+let _binId = null;
 let _syncTimer = null;
 let _isOffline = false;
 
-// ── Hash PIN → hex string ──
+// ── Hash name+PIN → doc ID ──
 async function hashPin(pin) {
   const enc = new TextEncoder().encode('jee_cc_v10_salt_' + pin);
   const buf = await crypto.subtle.digest('SHA-256', enc);
@@ -4047,80 +4068,41 @@ function restoreLocalData(data) {
   });
 }
 
-// ── The local map: pinHash → blobId (stored in localStorage) ──
-function getStoredBlobId(hash) {
-  return localStorage.getItem('_jeecc_blob_' + hash) || null;
-}
-function storeBlobId(hash, id) {
-  localStorage.setItem('_jeecc_blob_' + hash, id);
-}
-
-// ── Create new blob on JSONBlob ──
-async function createBlob(data) {
-  const r = await fetch(BLOB_BASE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({ ...data, _created: Date.now(), _v: 1 })
-  });
-  if (!r.ok) throw new Error('Blob create failed: ' + r.status);
-  // JSONBlob returns Location header with the blob ID
-  const loc = r.headers.get('Location') || '';
-  const id = loc.split('/').pop();
-  if (!id) throw new Error('No blob ID in response');
-  return id;
-}
-
-// ── Pull blob from cloud ──
-async function pullCloud(blobId) {
-  const r = await fetch(`${BLOB_BASE}/${blobId}`, {
-    headers: { 'Accept': 'application/json' }
-  });
-  if (r.status === 404) return null;
-  if (!r.ok) throw new Error('Pull failed: ' + r.status);
-  return await r.json();
-}
-
-// ── Push/update blob on cloud ──
-async function pushCloud(blobId, data) {
+// ── Push data to Firestore ──
+async function pushCloud(docId, data) {
   try {
     showSyncToast('☁️ Saving…');
-    const r = await fetch(`${BLOB_BASE}/${blobId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ ...data, _updated: Date.now() })
-    });
-    if (r.ok) { showSyncToast('✅ Saved!', 1800); return true; }
-    showSyncToast('⚠️ Sync error', 2000);
-    return false;
+    await setDoc(doc(_db, 'users', docId), { ...data, _updated: Date.now() });
+    showSyncToast('✅ Saved!', 1800);
+    return true;
   } catch(e) {
     showSyncToast('⚠️ Offline — saved locally', 2500);
     return false;
   }
 }
 
-// ── Get or create blob for this PIN ──
-async function getOrCreateBin(hash) {
-  // First check locally if we already have a blob ID for this PIN
-  const stored = getStoredBlobId(hash);
-  if (stored) {
-    // Verify it still exists
-    try {
-      const test = await pullCloud(stored);
-      if (test !== null) return stored;
-    } catch(e) {}
+// ── Pull data from Firestore ──
+async function pullCloud(docId) {
+  try {
+    const snap = await getDoc(doc(_db, 'users', docId));
+    if (!snap.exists()) return null;
+    return snap.data();
+  } catch(e) {
+    return null;
   }
-  // Create new blob
-  const id = await createBlob({ _hash: hash });
-  storeBlobId(hash, id);
-  return id;
 }
 
-// ── Schedule debounced push (called after every data change) ──
+// ── getOrCreateBin is now just the hash (no blob needed) ──
+async function getOrCreateBin(hash) {
+  return hash; // Firestore uses hash directly as doc ID
+}
+
+// ── Schedule debounced push ──
 function schedulePush() {
-  if (_isOffline || !_binId) return;
+  if (_getIsOffline() || !_getBinId()) return;
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(() => {
-    pushCloud(_binId, collectLocalData());
+    pushCloud(_getBinId(), collectLocalData());
   }, 2000);
 }
 
@@ -4146,6 +4128,27 @@ function showSyncToast(msg, hideAfter=0) {
   if (hideAfter) _toastTimer = setTimeout(() => { el.style.display='none'; }, hideAfter);
 }
 
+// ── Expose everything to global scope (needed by inline onclick handlers) ──
+window._getDb = () => _db;
+window._getPinHash = () => _pinHash;
+window._setPinHash = (v) => { _pinHash = v; };
+window._getBinId = () => _binId;
+window._setBinId = (v) => { _binId = v; };
+window._getIsOffline = () => _isOffline;
+window._setIsOffline = (v) => { _isOffline = v; };
+window.hashPin = hashPin;
+window.collectLocalData = collectLocalData;
+window.restoreLocalData = restoreLocalData;
+window.pushCloud = pushCloud;
+window.pullCloud = pullCloud;
+window.getOrCreateBin = getOrCreateBin;
+window.schedulePush = schedulePush;
+window.patchLocalStorage = patchLocalStorage;
+window.showSyncToast = showSyncToast;
+window.SYNC_KEYS_PATTERNS = SYNC_KEYS_PATTERNS;
+
+</script>
+<script>
 // ══════════════════════════════
 //  AUTH TAB SWITCHING
 // ══════════════════════════════
@@ -4230,29 +4233,28 @@ async function doSignUp() {
   setAuthMsgUp('Setting up your account…');
 
   try {
-    // Hash name+pin together for uniqueness
-    const hash = await hashPin(name.toLowerCase() + pin);
-    _pinHash = hash;
+    const hash = await window.hashPin(name.toLowerCase() + pin);
+    window._setPinHash(hash);
     _currentUserName = name;
     localStorage.setItem('_jeecc_username', name);
 
     setAuthMsgUp('☁️ Connecting to cloud…');
     let binId;
     try {
-      binId = await getOrCreateBin(hash);
+      binId = await window.getOrCreateBin(hash);
     } catch(e) {
       setAuthMsgUp('⚠️ Cloud unavailable — using local mode', 'err');
-      _isOffline = true;
+      window._setIsOffline(true);
       setTimeout(() => launchApp(pin, null, name), 1500);
       return;
     }
 
-    _binId = binId;
+    window._setBinId(binId);
     setAuthMsgUp('✅ Account created! Welcome, ' + name + ' 🚀', 'ok');
     setTimeout(() => launchApp(pin, binId, name), 1000);
   } catch(err) {
     setAuthMsgUp('⚠️ Could not connect — using offline mode', 'err');
-    _isOffline = true;
+    window._setIsOffline(true);
     setTimeout(() => launchApp(pin, null, name), 1500);
   }
 }
@@ -4308,51 +4310,47 @@ async function authEnter() {
   setAuthMsg('Connecting to cloud…');
 
   try {
-    // Hash name+pin — must match what was used on sign up
-    const hash = await hashPin(name.toLowerCase() + pin);
-    _pinHash = hash;
+    const hash = await window.hashPin(name.toLowerCase() + pin);
+    window._setPinHash(hash);
     _currentUserName = name;
 
     setAuthMsg('🔍 Finding your data…');
     let binId;
     try {
-      binId = await getOrCreateBin(hash);
+      binId = await window.getOrCreateBin(hash);
     } catch(e) {
       setAuthMsg('⚠️ Cloud unavailable — using local mode', 'err');
-      _isOffline = true;
+      window._setIsOffline(true);
       setTimeout(() => launchApp(pin, null, name), 1500);
       return;
     }
 
-    _binId = binId;
+    window._setBinId(binId);
     setAuthMsg('☁️ Loading your data…');
     let cloudData = null;
-    try { cloudData = await pullCloud(binId); } catch(e) {}
+    try { cloudData = await window.pullCloud(binId); } catch(e) {}
 
-    // Account exists if blob was found (cloudData !== null), regardless of whether it has study data yet
     if (cloudData !== null) {
-      restoreLocalData(cloudData);
+      window.restoreLocalData(cloudData);
       setAuthMsg('✅ Welcome back, ' + name + '! 👋', 'ok');
       localStorage.setItem('_jeecc_username', name);
     } else {
-      // Blob 404'd on cloud — name+PIN combo doesn't match any account
-      setAuthMsg('❌ Account not found. Check your name & PIN, or Sign Up.', 'err');
-      btn.disabled = false;
-      btn.textContent = 'Sign In →';
-      return;
+      // New device — sign in also creates account on Firestore (first sync will populate)
+      setAuthMsg('✅ Welcome back, ' + name + '! 👋', 'ok');
+      localStorage.setItem('_jeecc_username', name);
     }
 
     setTimeout(() => launchApp(pin, binId, name), 1000);
   } catch(err) {
     setAuthMsg('⚠️ Could not connect — switching to offline mode', 'err');
-    _isOffline = true;
+    window._setIsOffline(true);
     setTimeout(() => launchApp(pin, null, name), 1500);
   }
 }
 
 function authOffline() {
-  _isOffline = true;
-  _binId = null;
+  window._setIsOffline(true);
+  window._setBinId(null);
   launchApp('offline', null, 'User');
 }
 
@@ -4360,12 +4358,11 @@ let _currentUserName = '';
 
 function launchApp(pin, binId, name='') {
   _currentUserName = name || localStorage.getItem('_jeecc_username') || '';
-  // Persist session so refresh doesn't require re-login
   localStorage.setItem('_jeecc_session', JSON.stringify({
     name: _currentUserName,
     binId: binId || null,
-    pinHash: _pinHash || null,
-    offline: _isOffline || false
+    pinHash: window._getPinHash() || null,
+    offline: window._getIsOffline() || false
   }));
   // Hide overlay, show app
   document.getElementById('authOverlay').style.display = 'none';
@@ -4375,7 +4372,7 @@ function launchApp(pin, binId, name='') {
   // (pinBadge in header is hidden)
 
   // Patch localStorage to auto-sync
-  if (binId) patchLocalStorage();
+  if (binId) window.patchLocalStorage();
 
   // Boot the app
   if (!window._appInited) {
@@ -4393,10 +4390,10 @@ function launchApp(pin, binId, name='') {
 
 function doSignOut() {
   if (!confirm('Sign out? Your data is safely saved in the cloud.')) return;
-  // Clear session
   localStorage.removeItem('_jeecc_session');
-  _binId = null;
-  _pinHash = null;
+  window._setBinId(null);
+  window._setPinHash(null);
+  window._setIsOffline(false);
   _currentUserName = '';
   _pinDigits = ['','','',''];
   _pinDigitsUp = ['','','',''];
@@ -4441,11 +4438,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const saved = JSON.parse(localStorage.getItem('_jeecc_session') || 'null');
     if (saved && saved.name) {
       _currentUserName = saved.name;
-      _binId = saved.binId || null;
-      _pinHash = saved.pinHash || null;
-      _isOffline = saved.offline || false;
-      launchApp(null, _binId, _currentUserName);
-      return; // skip focusing the login field
+      window._setBinId(saved.binId || null);
+      window._setPinHash(saved.pinHash || null);
+      window._setIsOffline(saved.offline || false);
+      launchApp(null, window._getBinId(), _currentUserName);
+      return;
     }
   } catch(e) {}
 
@@ -4471,7 +4468,7 @@ function openDrawer() {
   const drawer = document.getElementById('sideDrawer');
   // Update pin info
   const badge = document.getElementById('drawerPinInfo');
-  if (badge) badge.textContent = _currentUserName ? '👤 ' + _currentUserName : (_pinHash ? '🔐 Logged In' : '📴 Offline');
+  if (badge) badge.textContent = _currentUserName ? '👤 ' + _currentUserName : (window._getPinHash() ? '🔐 Logged In' : '📴 Offline');
   // Update sync status
   updateSyncStatusPanel();
   overlay.style.display = 'block';
@@ -4598,30 +4595,47 @@ function loadSavedTheme() {
 function updateSyncStatusPanel() {
   const el = document.getElementById('syncStatusDetail');
   if (!el) return;
-  if (_isOffline || !_binId) {
+  const binId = window._getBinId();
+  const offline = window._getIsOffline();
+  if (offline || !binId) {
     el.innerHTML = '<span style="color:var(--warn)">⚠️ Offline Mode</span><br>Data is saved locally only. Log in with your PIN to enable cloud sync.';
     document.getElementById('drawerSyncDot').style.background = 'var(--warn)';
   } else {
-    el.innerHTML = '<span style="color:var(--accent3)">✅ Connected</span><br>Your data is syncing to the cloud automatically every 5 minutes.<br><br><span style="color:var(--text3);font-size:0.68rem;">Bin ID: ' + (_binId ? _binId.slice(0,8) + '…' : '—') + '</span>';
+    el.innerHTML = '<span style="color:var(--accent3)">✅ Connected</span><br>Your data is syncing to Firebase automatically every 5 minutes.<br><br><span style="color:var(--text3);font-size:0.68rem;">User ID: ' + (binId ? binId.slice(0,8) + '…' : '—') + '</span>';
     document.getElementById('drawerSyncDot').style.background = 'var(--accent3)';
   }
 }
 
 function drawerManualSync() {
-  if (_binId && !_isOffline) {
-    pushCloud(_binId, collectLocalData());
+  const binId = window._getBinId();
+  const offline = window._getIsOffline();
+  if (binId && !offline) {
+    window.pushCloud(binId, window.collectLocalData());
     showToast('☁️ Syncing now…');
   } else {
     showToast('📴 Offline — cannot sync');
   }
 }
 
-// ── Periodic auto-sync every 5 minutes while app is open ──
+// ── Periodic auto-sync every 5 minutes ──
 setInterval(() => {
-  if (_binId && !_isOffline) {
-    pushCloud(_binId, collectLocalData());
+  const binId = window._getBinId();
+  const offline = window._getIsOffline();
+  if (binId && !offline) {
+    window.pushCloud(binId, window.collectLocalData());
   }
 }, 5 * 60 * 1000);
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW failed:', err));
+  });
+}
 </script>
 
 </body>
