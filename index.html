@@ -4020,7 +4020,7 @@ function countUp(el, target, suffix='', duration=600) {
 // ═══════════════════════════════════════════════════════
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBw0HanihJkMnNAEDDiGMV55hkDKG108kE",
@@ -4078,7 +4078,9 @@ function restoreLocalData(data) {
 async function pushCloud(docId, data) {
   try {
     showSyncToast('☁️ Saving…');
-    await setDoc(doc(_db, 'users', docId), { ...data, _updated: Date.now() });
+    const now = Date.now();
+    _lastLocalUpdate = now;
+    await setDoc(doc(_db, 'users', docId), { ...data, _updated: now });
     showSyncToast('✅ Saved!', 1800);
     return true;
   } catch(e) {
@@ -4101,6 +4103,35 @@ async function pullCloud(docId) {
 // ── getOrCreateBin is now just the hash (no blob needed) ──
 async function getOrCreateBin(hash) {
   return hash; // Firestore uses hash directly as doc ID
+}
+
+// ── Real-time listener ──
+let _unsubscribeListener = null;
+let _lastLocalUpdate = 0;
+
+function startRealtimeSync(docId) {
+  if (_unsubscribeListener) _unsubscribeListener();
+  const docRef = doc(_db, 'users', docId);
+  _unsubscribeListener = onSnapshot(docRef, (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const remoteUpdated = data._updated || 0;
+    if (remoteUpdated <= _lastLocalUpdate + 4000) return;
+    Object.entries(data).forEach(([k, v]) => {
+      if (k.startsWith('_')) return;
+      if (window.SYNC_KEYS_PATTERNS.some(p => p.test(k))) {
+        try { localStorage.setItem(k, v); } catch(e) {}
+      }
+    });
+    if (typeof renderTasks === 'function') renderTasks();
+    if (typeof renderAttendance === 'function') renderAttendance();
+    if (typeof updateHomeStats === 'function') updateHomeStats();
+    showSyncToast('🔄 Synced from another device!', 2500);
+  }, (err) => { console.warn('Realtime sync error:', err); });
+}
+
+function stopRealtimeSync() {
+  if (_unsubscribeListener) { _unsubscribeListener(); _unsubscribeListener = null; }
 }
 
 // ── Schedule debounced push ──
@@ -4152,6 +4183,8 @@ window.schedulePush = schedulePush;
 window.patchLocalStorage = patchLocalStorage;
 window.showSyncToast = showSyncToast;
 window.SYNC_KEYS_PATTERNS = SYNC_KEYS_PATTERNS;
+window.startRealtimeSync = startRealtimeSync;
+window.stopRealtimeSync = stopRealtimeSync;
 
 </script>
 <script>
@@ -4391,7 +4424,10 @@ function launchApp(pin, binId, name='') {
   // (pinBadge in header is hidden)
 
   // Patch localStorage to auto-sync
-  if (binId) window.patchLocalStorage();
+  if (binId) {
+    window.patchLocalStorage();
+    window.startRealtimeSync(binId);
+  }
 
   // Boot the app
   if (!window._appInited) {
@@ -4409,6 +4445,7 @@ function launchApp(pin, binId, name='') {
 
 function doSignOut() {
   if (!confirm('Sign out? Your data is safely saved in the cloud.')) return;
+  window.stopRealtimeSync();
   localStorage.removeItem('_jeecc_session');
   window._setBinId(null);
   window._setPinHash(null);
