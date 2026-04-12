@@ -694,6 +694,94 @@ body::after {
 #daysToExam.urgent { color: var(--danger) !important; }
 #daysToExam.warn   { color: var(--accent2) !important; }
 
+/* ══ BELL / NOTIFICATION ══ */
+#bellBtn {
+  position: relative;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2); font-size: 1.1rem;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+#bellBtn:hover { border-color: rgba(108,99,255,0.4); color: var(--accent); }
+#bellBadge {
+  display: none;
+  position: absolute; top: -5px; right: -5px;
+  background: var(--danger); color: #fff;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.5rem; font-weight: 700;
+  width: 16px; height: 16px; border-radius: 50%;
+  align-items: center; justify-content: center;
+  border: 1.5px solid var(--bg);
+}
+#bellBadge.show { display: flex; }
+
+/* Notification Panel */
+#notifPanel {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9000;
+}
+#notifOverlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+}
+#notifBox {
+  position: absolute; top: 64px; right: 12px;
+  width: min(340px, calc(100vw - 24px));
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  overflow: hidden;
+  max-height: 70vh;
+  display: flex; flex-direction: column;
+}
+.notif-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px 10px;
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.notif-header-title {
+  font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 6px;
+}
+.notif-clear {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.55rem; color: var(--text3);
+  background: none; border: none; cursor: pointer; padding: 3px 7px;
+  border-radius: 5px; transition: color 0.15s;
+}
+.notif-clear:hover { color: var(--danger); }
+.notif-list {
+  overflow-y: auto; flex: 1;
+  padding: 6px 0;
+}
+.notif-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: default;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item.unread { background: rgba(108,99,255,0.05); }
+.notif-msg { font-size: 0.8rem; color: var(--text); line-height: 1.4; margin-bottom: 3px; }
+.notif-time { font-family: 'IBM Plex Mono', monospace; font-size: 0.55rem; color: var(--text3); }
+.notif-empty { padding: 24px 14px; text-align: center; color: var(--text3); font-size: 0.78rem; }
+.notif-perm-bar {
+  padding: 9px 14px; background: rgba(108,99,255,0.08);
+  border-top: 1px solid rgba(108,99,255,0.2);
+  font-size: 0.72rem; color: var(--accent);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  flex-shrink: 0;
+}
+.notif-perm-btn {
+  background: var(--accent); color: #fff; border: none; border-radius: 6px;
+  padding: 5px 10px; font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+}
+
+
 
 /* ══ PIN AUTH OVERLAY ══ */
 #authOverlay {
@@ -1442,6 +1530,24 @@ body::after {
   </div>
 </div>
 
+<!-- ══ NOTIFICATION PANEL ══ -->
+<div id="notifPanel">
+  <div id="notifOverlay" onclick="closeNotifPanel()"></div>
+  <div id="notifBox">
+    <div class="notif-header">
+      <div class="notif-header-title">🔔 Notifications</div>
+      <button class="notif-clear" onclick="clearAllNotifs()">Clear all</button>
+    </div>
+    <div class="notif-list" id="notifList">
+      <div class="notif-empty">No notifications yet</div>
+    </div>
+    <div class="notif-perm-bar" id="notifPermBar" style="display:none;">
+      <span>Enable push notifications?</span>
+      <button class="notif-perm-btn" onclick="requestNotifPermission()">Enable</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MAIN APP ══ -->
 <div id="mainApp" style="display:none">
 <div class="wrap">
@@ -1455,7 +1561,11 @@ body::after {
         <div class="brand-sub">⚡ Lakshya 2027</div>
       </div>
     </div>
-    <div class="header-right" id="headerRight">
+    <div class="header-right" id="headerRight" style="flex-direction:row;align-items:center;gap:8px;">
+      <button id="bellBtn" onclick="toggleNotifPanel()" title="Notifications">
+        🔔
+        <span id="bellBadge"></span>
+      </button>
       <div id="pinBadge" onclick="doSignOut()" title="Click to sign out" style="display:none;">🔐 PIN ****</div>
     </div>
   </div>
@@ -4715,6 +4825,303 @@ setInterval(() => {
     window.pushCloud(binId, window.collectLocalData());
   }
 }, 5 * 60 * 1000);
+
+// ══════════════════════════════════════════════
+//  NOTIFICATION SYSTEM
+// ══════════════════════════════════════════════
+(function() {
+
+// ── Storage helpers ──
+function getNotifs() {
+  try { return JSON.parse(localStorage.getItem('jcc_notifs') || '[]'); } catch(e) { return []; }
+}
+function saveNotifs(arr) {
+  localStorage.setItem('jcc_notifs', JSON.stringify(arr.slice(0, 50)));
+}
+function getScheduled() {
+  try { return JSON.parse(localStorage.getItem('jcc_notif_scheduled') || '{}'); } catch(e) { return {}; }
+}
+function saveScheduled(obj) {
+  localStorage.setItem('jcc_notif_scheduled', JSON.stringify(obj));
+}
+
+// ── Add in-app notification ──
+function addNotif(msg, type) {
+  const notifs = getNotifs();
+  const item = { id: Date.now(), msg, time: new Date().toISOString(), unread: true, type: type || 'info' };
+  notifs.unshift(item);
+  saveNotifs(notifs);
+  renderNotifBadge();
+  renderNotifList();
+}
+window._addNotif = addNotif;
+
+// ── Render badge ──
+function renderNotifBadge() {
+  const notifs = getNotifs();
+  const unread = notifs.filter(n => n.unread).length;
+  const badge = document.getElementById('bellBadge');
+  if (!badge) return;
+  if (unread > 0) {
+    badge.textContent = unread > 9 ? '9+' : unread;
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
+// ── Render list ──
+function renderNotifList() {
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  const notifs = getNotifs();
+  if (!notifs.length) {
+    list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+    return;
+  }
+  list.innerHTML = notifs.map(n => {
+    const d = new Date(n.time);
+    const timeStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' · ' +
+      d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return `<div class="notif-item ${n.unread ? 'unread' : ''}">
+      <div class="notif-msg">${n.msg}</div>
+      <div class="notif-time">${timeStr}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Toggle panel ──
+window.toggleNotifPanel = function() {
+  const panel = document.getElementById('notifPanel');
+  if (!panel) return;
+  const isOpen = panel.style.display === 'flex';
+  if (isOpen) {
+    panel.style.display = 'none';
+  } else {
+    // Mark all as read
+    const notifs = getNotifs();
+    notifs.forEach(n => n.unread = false);
+    saveNotifs(notifs);
+    renderNotifBadge();
+    renderNotifList();
+    panel.style.display = 'flex';
+    // Show permission bar if not granted
+    const bar = document.getElementById('notifPermBar');
+    if (bar) {
+      bar.style.display = (Notification && Notification.permission === 'default') ? 'flex' : 'none';
+    }
+  }
+};
+
+window.closeNotifPanel = function() {
+  const panel = document.getElementById('notifPanel');
+  if (panel) panel.style.display = 'none';
+};
+
+window.clearAllNotifs = function() {
+  saveNotifs([]);
+  renderNotifBadge();
+  renderNotifList();
+};
+
+// ── Push notification permission ──
+window.requestNotifPermission = async function() {
+  if (!('Notification' in window)) { showToast('Push not supported on this browser'); return; }
+  const perm = await Notification.requestPermission();
+  const bar = document.getElementById('notifPermBar');
+  if (bar) bar.style.display = 'none';
+  if (perm === 'granted') {
+    showToast('✅ Push notifications enabled!', 'success');
+    scheduleAllNotifications();
+  } else {
+    showToast('Notifications blocked — using in-app only');
+  }
+};
+
+// ── Send push notification ──
+function sendPush(title, body) {
+  if (Notification && Notification.permission === 'granted') {
+    try {
+      new Notification(title, { body, icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%23080810'/><text x='96' y='130' font-size='100' text-anchor='middle'>⚡</text></svg>" });
+    } catch(e) {}
+  }
+}
+
+// ── Class schedule ──
+// Physics: SLOT1 04:15 PM, Chemistry: SLOT2 06:30 PM
+// Physics is subject index 0 (first), Chemistry is index 1 (second) per getSubjectsForDate logic
+// We notify 10 min before: Physics 04:05, Chemistry 06:20
+// Also: if today's class not checked within 4 hrs after end → reminder
+// Physics ends 06:00 → check at 10:00 PM; Chemistry ends 08:15 → check at 12:15 AM next day
+
+const PHYSICS_START = { h: 16, m: 15 };  // 4:15 PM
+const CHEM_START    = { h: 18, m: 30 };  // 6:30 PM
+const PHYSICS_END   = { h: 18, m: 0  };  // 6:00 PM
+const CHEM_END      = { h: 20, m: 15 };  // 8:15 PM
+const NOTIF_AHEAD   = 10; // minutes before
+const MISSED_GRACE  = 4 * 60; // 4 hours in minutes
+
+function getDateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function hasPhysicsToday(ds) {
+  return typeof physicsLectures !== 'undefined' && physicsLectures.some(l => l.date === ds);
+}
+function hasChemToday(ds) {
+  return typeof chemPhysLectures !== 'undefined' && chemPhysLectures.some(l => l.date === ds);
+}
+function getPhysicsLec(ds) {
+  if (typeof physicsLectures === 'undefined') return null;
+  return physicsLectures.find(l => l.date === ds) || null;
+}
+function getChemLec(ds) {
+  if (typeof chemPhysLectures === 'undefined') return null;
+  return chemPhysLectures.find(l => l.date === ds) || null;
+}
+
+function isPhysicsAttended(ds) {
+  const saved = JSON.parse(localStorage.getItem('tasks_' + ds) || '{}');
+  // class task ids are c1, c2 etc based on subject order
+  const subjects = [];
+  if (hasPhysicsToday(ds)) subjects.push('Physics');
+  if (hasChemToday(ds)) subjects.push('Chemistry');
+  const phyIdx = subjects.indexOf('Physics');
+  if (phyIdx === -1) return true; // no class
+  return !!saved['c' + (phyIdx + 1)];
+}
+function isChemAttended(ds) {
+  const saved = JSON.parse(localStorage.getItem('tasks_' + ds) || '{}');
+  const subjects = [];
+  if (hasPhysicsToday(ds)) subjects.push('Physics');
+  if (hasChemToday(ds)) subjects.push('Chemistry');
+  const chemIdx = subjects.indexOf('Chemistry') !== -1 ? subjects.indexOf('Chemistry') :
+    subjects.findIndex(s => s === 'Chemistry' || s === 'Phy Chemistry' || s === 'Organic Chemistry' || s === 'Inorganic Chemistry');
+  if (chemIdx === -1) return true;
+  return !!saved['c' + (chemIdx + 1)];
+}
+
+function checkNotificationsNow() {
+  const now = new Date();
+  const ds = getDateStr(now);
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const scheduled = getScheduled();
+
+  // ── 1. Pre-class reminders (10 min before) ──
+  if (hasPhysicsToday(ds)) {
+    const phyRemind = (PHYSICS_START.h * 60 + PHYSICS_START.m) - NOTIF_AHEAD;
+    const key = 'phy_remind_' + ds;
+    if (!scheduled[key] && nowMins >= phyRemind && nowMins < phyRemind + 5) {
+      const lec = getPhysicsLec(ds);
+      const detail = lec ? `\nChapter: ${lec.ch}\nTopic: ${lec.topic} #${lec.n}` : '';
+      const msg = `⚡ Hurry up! Physics class starts in 10 min (4:15 PM)${detail}`;
+      addNotif(msg, 'physics');
+      sendPush('⚡ Physics Class Soon!', `Starts at 4:15 PM${lec ? ' · ' + lec.ch + ' #' + lec.n : ''}`);
+      scheduled[key] = true;
+      saveScheduled(scheduled);
+    }
+  }
+
+  if (hasChemToday(ds)) {
+    const chemRemind = (CHEM_START.h * 60 + CHEM_START.m) - NOTIF_AHEAD;
+    const key = 'chem_remind_' + ds;
+    if (!scheduled[key] && nowMins >= chemRemind && nowMins < chemRemind + 5) {
+      const lec = getChemLec(ds);
+      const msg = `🧪 Hurry up! Chemistry class starts in 10 min (6:30 PM)`;
+      addNotif(msg, 'chemistry');
+      sendPush('🧪 Chemistry Class Soon!', `Starts at 6:30 PM${lec ? ' · ' + lec.ch + ' #' + lec.n : ''}`);
+      scheduled[key] = true;
+      saveScheduled(scheduled);
+    }
+  }
+
+  // ── 2. Missed lecture check (4 hrs after class end) ──
+  if (hasPhysicsToday(ds)) {
+    const phyCheck = PHYSICS_END.h * 60 + PHYSICS_END.m + MISSED_GRACE;
+    const key = 'phy_missed_' + ds;
+    if (!scheduled[key] && nowMins >= phyCheck && nowMins < phyCheck + 5) {
+      if (!isPhysicsAttended(ds)) {
+        addNotif("📋 You haven't completed today's Physics lecture. Did you miss it?", 'warn');
+        sendPush('📋 Physics Lecture?', "You haven't marked today's Physics class complete.");
+        scheduled[key] = true;
+        saveScheduled(scheduled);
+      } else {
+        scheduled[key] = true;
+        saveScheduled(scheduled);
+      }
+    }
+  }
+
+  if (hasChemToday(ds)) {
+    const chemEnd = CHEM_END.h * 60 + CHEM_END.m;
+    const chemCheck = chemEnd + MISSED_GRACE;
+    // This goes past midnight (20:15 + 4h = 00:15 next day)
+    // Handle: if chemCheck > 1440 (midnight), check next day
+    const key = 'chem_missed_' + ds;
+    if (chemCheck <= 1440) {
+      if (!scheduled[key] && nowMins >= chemCheck && nowMins < chemCheck + 5) {
+        if (!isChemAttended(ds)) {
+          addNotif("📋 You haven't completed today's Chemistry lecture. Did you miss it?", 'warn');
+          sendPush('📋 Chemistry Lecture?', "You haven't marked today's Chemistry class complete.");
+        }
+        scheduled[key] = true;
+        saveScheduled(scheduled);
+      }
+    } else {
+      // Crosses midnight — check the next day early morning
+      const nextDay = new Date(now); nextDay.setDate(now.getDate() + 1);
+      const nextDs = getDateStr(nextDay);
+      const nextKey = 'chem_missed_' + ds + '_next';
+      const checkMins = chemCheck - 1440;
+      if (!scheduled[nextKey] && now.getDate() !== parseInt(ds.split('-')[2]) && nowMins >= checkMins && nowMins < checkMins + 5) {
+        if (!isChemAttended(ds)) {
+          addNotif("📋 You haven't completed yesterday's Chemistry lecture. Did you miss it?", 'warn');
+          sendPush('📋 Chemistry Lecture?', "You haven't marked yesterday's Chemistry class complete.");
+        }
+        scheduled[nextKey] = true;
+        saveScheduled(scheduled);
+      }
+    }
+  }
+
+  // ── 3. Backlog reminder (check once per day at 8 AM) ──
+  const backlogKey = 'backlog_remind_' + ds;
+  if (!scheduled[backlogKey] && nowMins >= 8*60 && nowMins < 8*60+5) {
+    const count = typeof getBacklogCount === 'function' ? getBacklogCount() : 0;
+    if (count > 0) {
+      addNotif(`⚠️ You have ${count} backlog task${count > 1 ? 's' : ''} pending. Complete your backlog!`, 'warn');
+      sendPush('⚠️ Backlog Tasks!', `You have ${count} pending task${count > 1 ? 's' : ''} from yesterday.`);
+    }
+    scheduled[backlogKey] = true;
+    saveScheduled(scheduled);
+  }
+}
+
+// ── Scheduler loop (runs every minute) ──
+function scheduleAllNotifications() {
+  // Just runs the check loop
+}
+
+// ── Init ──
+function initNotifications() {
+  renderNotifBadge();
+  renderNotifList();
+  // Show permission bar in bell panel if not yet asked
+  // Check every 60 seconds
+  setInterval(checkNotificationsNow, 60 * 1000);
+  // Also check immediately on load (in case app was opened late)
+  setTimeout(checkNotificationsNow, 3000);
+}
+
+// Wait for app to be ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initNotifications);
+} else {
+  setTimeout(initNotifications, 500);
+}
+
+})();
+
 </script>
 
 <!-- PWA Service Worker Registration -->
