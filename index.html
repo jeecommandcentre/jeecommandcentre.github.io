@@ -1829,7 +1829,7 @@ I work 100% offline — no internet needed! 🚀</div>
     </span>
     Performance
   </button>
-  <button class="nav-btn" id="nav-syllabus" onclick="window.open('https://rarestudy.site/subjects/8Sbf0Y2UObtsy34z3TA4p1T3sRpXqNVMULMMrc2zr0E5ZGv-2NHp1cplKWGbvE2VikfrIbCBCGkbXdf9i0WLLL0MFb1Vk6zH_YwZ-Z2HFnElW3KpEkrJLctx5creu6_vzopWIE8EwBUydo8NtKUgrEA_aQOLKn0_ea6-7vf0VaGR5InQI3dy9dwh05AC_1-xJEsEfUmps_qOd8mxsatMzurPLUx4KdyYpBAawbu-LxLKyipPEG7e-N1ptdlwTxQrQkcSu7IMQZHUolhCzl51Hw','_blank')">
+  <button class="nav-btn" id="nav-syllabus" onclick="openInAppBrowser('https://rarestudy.site/subjects/8Sbf0Y2UObtsy34z3TA4p1T3sRpXqNVMULMMrc2zr0E5ZGv-2NHp1cplKWGbvE2VikfrIbCBCGkbXdf9i0WLLL0MFb1Vk6zH_YwZ-Z2HFnElW3KpEkrJLctx5creu6_vzopWIE8EwBUydo8NtKUgrEA_aQOLKn0_ea6-7vf0VaGR5InQI3dy9dwh05AC_1-xJEsEfUmps_qOd8mxsatMzurPLUx4KdyYpBAawbu-LxLKyipPEG7e-N1ptdlwTxQrQkcSu7IMQZHUolhCzl51Hw')">
     <span class="nav-icon">
       <img src="https://images.seeklogo.com/logo-png/47/1/physics-wallah-logo-png_seeklogo-474856.png" alt="PW" style="width:22px;height:22px;object-fit:contain;display:inline-block;vertical-align:middle;border-radius:4px;">
     </span>
@@ -4730,3 +4730,51 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
+<!-- ── IN-APP FULLSCREEN BROWSER ── -->
+<div id="inAppBrowser" style="
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  z-index:99999;
+  background:#000;
+  flex-direction:column;
+">
+  <!-- Close button -->
+  <button onclick="closeInAppBrowser()" style="
+    position:absolute;
+    top:14px;right:14px;
+    z-index:100000;
+    width:36px;height:36px;
+    border-radius:50%;
+    background:rgba(0,0,0,0.6);
+    border:1.5px solid rgba(255,255,255,0.2);
+    color:#fff;
+    font-size:1.1rem;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(8px);
+  ">✕</button>
+  <!-- Fullscreen iframe -->
+  <iframe id="inAppFrame"
+    src=""
+    style="width:100%;height:100%;border:none;flex:1;"
+    allow="fullscreen"
+  ></iframe>
+</div>
+
+<script>
+function openInAppBrowser(url) {
+  const browser = document.getElementById('inAppBrowser');
+  const frame = document.getElementById('inAppFrame');
+  frame.src = url;
+  browser.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeInAppBrowser() {
+  const browser = document.getElementById('inAppBrowser');
+  const frame = document.getElementById('inAppFrame');
+  browser.style.display = 'none';
+  frame.src = '';
+  document.body.style.overflow = '';
+}
+</script>
