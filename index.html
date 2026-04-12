@@ -1126,8 +1126,8 @@ body::after {
     <div class="auth-tagline">⚡ Cloud Sync · PIN Login</div>
 
     <!-- TABS -->
-    <div class="auth-tabs" style="margin-top:18px;">
-      <button class="auth-tab-btn active" id="tabSignUp" onclick="switchAuthTab('signup')">Sign In</button>
+    <div class="auth-tabs" id="authTabs" style="margin-top:18px;">
+      <button class="auth-tab-btn active" id="tabSignUp" onclick="switchAuthTab('signup')">Sign Up</button>
       <button class="auth-tab-btn" id="tabSignIn" onclick="switchAuthTab('signin')">Log In</button>
     </div>
 
@@ -1168,14 +1168,20 @@ body::after {
       <div style="height:8px"></div>
       <button class="auth-btn" id="authEnterBtn" onclick="authEnter()" disabled>Log In →</button>
       <div style="font-size:0.58rem;color:#555878;text-align:center;font-family:'IBM Plex Mono',monospace;margin-top:8px;line-height:1.5;">
-        New here? <span style="color:#6c63ff;cursor:pointer;" onclick="switchAuthTab('signup')">Sign in</span> to create your account.<br>Already have an account? Log in above.
+        New here? <span style="color:#6c63ff;cursor:pointer;" onclick="switchAuthTab('signup')">Sign Up</span> to create your account.
       </div>
-      <div class="auth-divider">or</div>
+    </div>
+
+    <!-- OFFLINE ONLY shown when no internet -->
+    <div id="authOfflineOnly" style="display:none;text-align:center;padding:20px 0;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">📴</div>
+      <div style="color:var(--text2);font-size:0.9rem;font-weight:600;margin-bottom:6px;">You're offline</div>
+      <div style="color:var(--text3);font-size:0.75rem;margin-bottom:20px;line-height:1.6;">Connect to the internet to sign in or sign up.<br>You can continue with local data for now.</div>
       <button class="auth-btn-sec" onclick="authOffline()">Continue Offline (no sync)</button>
     </div>
 
     <div style="font-size:0.62rem;color:#555878;text-align:center;font-family:'IBM Plex Mono',monospace;margin-top:10px;">
-      PIN is private · data stored on JSONBin cloud
+      PIN is private · data stored on Firebase cloud
     </div>
   </div>
 </div>
@@ -4236,26 +4242,33 @@ async function doSignUp() {
     const hash = await window.hashPin(name.toLowerCase() + pin);
     window._setPinHash(hash);
     _currentUserName = name;
-    localStorage.setItem('_jeecc_username', name);
 
     setAuthMsgUp('☁️ Connecting to cloud…');
-    let binId;
-    try {
-      binId = await window.getOrCreateBin(hash);
-    } catch(e) {
-      setAuthMsgUp('⚠️ Cloud unavailable — using local mode', 'err');
-      window._setIsOffline(true);
-      setTimeout(() => launchApp(pin, null, name), 1500);
+
+    // Check if account already exists
+    let existing = null;
+    try { existing = await window.pullCloud(hash); } catch(e) {}
+    if (existing !== null) {
+      setAuthMsgUp('⚠️ Account already exists. Use Log In instead.', 'err');
+      btn.disabled = false;
+      btn.textContent = 'Sign Up →';
       return;
     }
 
-    window._setBinId(binId);
+    // Clear previous user's data, start fresh
+    clearLocalUserData();
+    localStorage.setItem('_jeecc_username', name);
+    window._setBinId(hash);
+
+    // Create the account on Firestore immediately
+    await window.pushCloud(hash, { _created: Date.now() });
+
     setAuthMsgUp('✅ Account created! Welcome, ' + name + ' 🚀', 'ok');
-    setTimeout(() => launchApp(pin, binId, name), 1000);
+    setTimeout(() => launchApp(pin, hash, name), 1000);
   } catch(err) {
-    setAuthMsgUp('⚠️ Could not connect — using offline mode', 'err');
-    window._setIsOffline(true);
-    setTimeout(() => launchApp(pin, null, name), 1500);
+    setAuthMsgUp('⚠️ Could not connect — check your internet.', 'err');
+    btn.disabled = false;
+    btn.textContent = 'Sign Up →';
   }
 }
 
@@ -4307,7 +4320,7 @@ async function authEnter() {
   const btn = document.getElementById('authEnterBtn');
   btn.disabled = true;
   btn.textContent = '⏳ Signing in…';
-  setAuthMsg('Connecting to cloud…');
+  setAuthMsg('☁️ Connecting to cloud…');
 
   try {
     const hash = await window.hashPin(name.toLowerCase() + pin);
@@ -4315,37 +4328,43 @@ async function authEnter() {
     _currentUserName = name;
 
     setAuthMsg('🔍 Finding your data…');
-    let binId;
-    try {
-      binId = await window.getOrCreateBin(hash);
-    } catch(e) {
-      setAuthMsg('⚠️ Cloud unavailable — using local mode', 'err');
-      window._setIsOffline(true);
-      setTimeout(() => launchApp(pin, null, name), 1500);
+    let cloudData = null;
+    try { cloudData = await window.pullCloud(hash); } catch(e) {}
+
+    if (cloudData === null) {
+      // Account doesn't exist — wrong name or PIN
+      setAuthMsg('❌ Incorrect name or PIN. Check and try again, or Sign Up.', 'err');
+      btn.disabled = false;
+      btn.textContent = 'Log In →';
+      window._setPinHash(null);
       return;
     }
 
-    window._setBinId(binId);
-    setAuthMsg('☁️ Loading your data…');
-    let cloudData = null;
-    try { cloudData = await window.pullCloud(binId); } catch(e) {}
+    // Clear ALL previous user's local data before loading new user's data
+    clearLocalUserData();
+    window.restoreLocalData(cloudData);
+    localStorage.setItem('_jeecc_username', name);
+    window._setBinId(hash);
+    setAuthMsg('✅ Welcome back, ' + name + '! 👋', 'ok');
+    setTimeout(() => launchApp(pin, hash, name), 1000);
 
-    if (cloudData !== null) {
-      window.restoreLocalData(cloudData);
-      setAuthMsg('✅ Welcome back, ' + name + '! 👋', 'ok');
-      localStorage.setItem('_jeecc_username', name);
-    } else {
-      // New device — sign in also creates account on Firestore (first sync will populate)
-      setAuthMsg('✅ Welcome back, ' + name + '! 👋', 'ok');
-      localStorage.setItem('_jeecc_username', name);
-    }
-
-    setTimeout(() => launchApp(pin, binId, name), 1000);
   } catch(err) {
-    setAuthMsg('⚠️ Could not connect — switching to offline mode', 'err');
-    window._setIsOffline(true);
-    setTimeout(() => launchApp(pin, null, name), 1500);
+    setAuthMsg('⚠️ Could not connect — check your internet and try again.', 'err');
+    btn.disabled = false;
+    btn.textContent = 'Log In →';
   }
+}
+
+// ── Clear all user-specific local data (called on account switch) ──
+function clearLocalUserData() {
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (window.SYNC_KEYS_PATTERNS.some(p => p.test(key))) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(k => localStorage.removeItem(k));
 }
 
 function authOffline() {
@@ -4446,8 +4465,42 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   } catch(e) {}
 
+  // ── Check online/offline and update auth UI ──
+  updateAuthOnlineState();
+  window.addEventListener('online', () => {
+    updateAuthOnlineState();
+    // Auto-sync if user is logged in and comes back online
+    const binId = window._getBinId();
+    if (binId) {
+      window._setIsOffline(false);
+      window.pushCloud(binId, window.collectLocalData());
+      window.showSyncToast('☁️ Back online — syncing…', 3000);
+    }
+  });
+  window.addEventListener('offline', () => updateAuthOnlineState());
+
   setTimeout(() => document.getElementById('signUpName')?.focus(), 100);
 });
+
+function updateAuthOnlineState() {
+  const online = navigator.onLine;
+  const authTabs = document.getElementById('authTabs');
+  const authSignUp = document.getElementById('authSignUp');
+  const authSignIn = document.getElementById('authSignIn');
+  const offlineOnly = document.getElementById('authOfflineOnly');
+
+  if (online) {
+    if (authTabs) authTabs.style.display = '';
+    if (authSignUp) authSignUp.style.display = _currentAuthTab === 'signup' ? 'block' : 'none';
+    if (authSignIn) authSignIn.style.display = _currentAuthTab === 'signin' ? 'block' : 'none';
+    if (offlineOnly) offlineOnly.style.display = 'none';
+  } else {
+    if (authTabs) authTabs.style.display = 'none';
+    if (authSignUp) authSignUp.style.display = 'none';
+    if (authSignIn) authSignIn.style.display = 'none';
+    if (offlineOnly) offlineOnly.style.display = 'block';
+  }
+}
 
 // ══ FIXED SIGN OUT — closes drawer cleanly first ══
 function handleSignOut() {
