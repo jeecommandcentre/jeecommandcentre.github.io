@@ -138,20 +138,46 @@ body::after {
 .sec-label .sec-count { margin-left:auto; font-size:0.6rem; color:var(--accent3); background:rgba(0,229,160,0.08); border:1px solid rgba(0,229,160,0.18); padding:1px 8px; border-radius:20px; }
 
 /* ── HOME TAB ── */
-.stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 8px; }
-.stat-box { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); padding: 12px 8px 10px; text-align: center; }
-.stat-val { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--accent); line-height: 1; }
+.stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 8px; }
+.stat-box {
+  background: linear-gradient(145deg, #0f0f1c, #14142a);
+  border: 1px solid rgba(108,99,255,0.15);
+  border-radius: 14px;
+  padding: 16px 10px;
+  text-align: center;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.35);
+  transition: all 0.2s ease;
+}
+.stat-box:hover {
+  border-color: rgba(108,99,255,0.4);
+  box-shadow: 0 8px 30px rgba(108,99,255,0.15);
+  transform: translateY(-2px);
+}
+.stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
 .stat-val .denom { font-size: 0.85rem; color: var(--text3); font-weight: 400; }
-.stat-lbl { font-size: 0.58rem; color: var(--text3); margin-top: 4px; letter-spacing: 0.07em; text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; }
+.stat-lbl {
+  font-size: 0.55rem;
+  color: #6b6f8a;
+  margin-top: 6px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+}
 
 /* ALERT ZONE */
 .alert-zone { margin-bottom: 8px; display:flex; flex-direction:column; gap:5px; }
-.alert { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-sm); font-size: 0.77rem; font-weight: 500; }
+.alert { display: flex; align-items: center; gap: 7px; padding: 6px 9px; border-radius: var(--radius-sm); font-size: 0.68rem; font-weight: 500; }
 .alert-warn { background: rgba(240,165,0,0.07); border: 1px solid rgba(240,165,0,0.25); color: var(--warn); }
 .alert-danger { background: rgba(255,77,109,0.07); border: 1px solid rgba(255,77,109,0.25); color: var(--danger); }
 .alert-info { background: rgba(108,99,255,0.07); border: 1px solid rgba(108,99,255,0.2); color: #a89bff; }
 .alert-ok { background: rgba(0,229,160,0.07); border: 1px solid rgba(0,229,160,0.2); color: var(--accent3); }
-.alert-icon { font-size: 0.95rem; flex-shrink:0; }
+.alert-icon { font-size: 0.82rem; flex-shrink:0; }
 
 /* WEEKLY OVERVIEW */
 .weekly-wrap { display: flex; align-items: center; gap: 6px; }
@@ -196,29 +222,132 @@ body::after {
 .dd-lec-val { font-size:0.76rem; color:var(--text); font-weight:500; line-height:1.3; }
 .dd-lec-num { font-family:'IBM Plex Mono',monospace; font-size:0.72rem; }
 
-/* CLASS CARDS */
-.class-grid { display:flex; flex-direction:column; gap:8px; }
-.class-card { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 13px 14px; position:relative; overflow:hidden; }
-.class-card::before { content:''; position:absolute; top:0; left:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
-.cc-phy::before { background:var(--physics); }
-.cc-chem::before { background:var(--chemistry); }
-.cc-math::before { background:var(--maths); }
-.cc-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; }
-.cc-time { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--text3); background:var(--surface3); border:1px solid var(--border2); padding:3px 9px; border-radius:20px; }
-.cc-attend { width:24px; height:24px; border-radius:5px; border:1.5px solid var(--border2); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; font-size:0.7rem; color:transparent; }
+/* CLASS CARDS - Image 2 Style */
+.class-grid { display:flex; flex-direction:column; gap:10px; }
+
+/* Today's Classes header row */
+.today-classes-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.today-classes-title {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.today-classes-title::before { display:none; }
+.today-classes-viewall {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--text3);
+  display: flex; align-items: center; gap: 3px; cursor: pointer;
+  transition: color 0.15s;
+}
+.today-classes-viewall:hover { color: var(--accent); }
+
+.class-card {
+  background: linear-gradient(145deg, #101022, #13132a);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 6px 8px 6px 11px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+}
+.class-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.35);
+}
+/* Left accent border */
+.class-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 14px 0 0 14px;
+}
+.cc-phy::before { background: var(--physics); }
+.cc-chem::before { background: var(--chemistry); }
+.cc-math::before { background: var(--maths); }
+
+/* Subject-tinted background glow */
+.cc-phy { background: linear-gradient(145deg, #0f0f22, #131328); border-color: rgba(123,111,255,0.1); }
+.cc-chem { background: linear-gradient(145deg, #0d1a17, #0f1e1a); border-color: rgba(46,212,160,0.1); }
+.cc-math { background: linear-gradient(145deg, #1a150a, #1c1708); border-color: rgba(240,165,0,0.1); }
+
+/* Watermark icon */
+.cc-icon {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 80px;
+  height: 80px;
+  pointer-events: none;
+}
+.cc-icon svg { width: 100%; height: 100%; }
+.cc-phy .cc-icon svg { opacity: 0.09; }
+.cc-math .cc-icon svg { opacity: 0.09; }
+.cc-chem .cc-icon svg { opacity: 0.09; }
+
+.cc-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+.cc-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.46rem;
+  background: rgba(255,255,255,0.06);
+  padding: 1px 5px;
+  border-radius: 20px;
+  color: #999;
+  letter-spacing: 0.02em;
+}
+.cc-attend { width:18px; height:18px; border-radius:4px; border:1.5px solid var(--border2); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; font-size:0.6rem; color:transparent; }
 .cc-attend.done { background:var(--accent3); border-color:var(--accent3); color:#000; box-shadow:0 0 8px rgba(0,229,160,0.3); }
 .cc-attend:hover { border-color:rgba(0,229,160,0.5); }
-.cc-subj { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:7px; }
-.cc-phy .cc-subj { color:var(--physics); }
-.cc-chem .cc-subj { color:var(--chemistry); }
-.cc-math .cc-subj { color:var(--maths); }
-.cc-meta { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px; }
-.cc-meta-full { grid-column:1/-1; }
-.meta-item { background:var(--surface3); border:1px solid var(--border); border-radius:5px; padding:6px 9px; }
-.meta-lbl { font-family:'IBM Plex Mono',monospace; font-size:0.52rem; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:2px; }
-.meta-val { font-size:0.78rem; font-weight:500; color:var(--text); line-height:1.3; }
-.lec-num { font-family:'IBM Plex Mono',monospace; font-size:0.75rem; }
+
+.cc-subj {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 7px;
+  line-height: 1.1;
+}
+.cc-phy .cc-subj { color: var(--physics); }
+.cc-chem .cc-subj { color: var(--chemistry); }
+.cc-math .cc-subj { color: var(--maths); }
+
+/* New horizontal meta row (Chapter | Lecture) */
+.cc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.cc-meta-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.cc-meta-row .meta-item { flex: 1; min-width: 0; }
+.cc-meta-full { /* topic spans full width */ }
+.meta-item { background: transparent; border: none; padding: 0; }
+.meta-lbl { font-family:'IBM Plex Mono',monospace; font-size:0.46rem; color:var(--text3); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:2px; }
+.meta-val { font-size:0.72rem; font-weight:500; color:var(--text); line-height:1.2; }
+.lec-num { font-family:'IBM Plex Mono',monospace; font-size:0.7rem; font-weight:700; }
 .lec-phy { color:#a89bff; } .lec-chem { color:var(--chemistry); } .lec-math { color:var(--maths); }
+
+/* Divider between chapter+lecture row and topic row */
+.cc-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.05);
+  margin: 2px 0 1px;
+}
+
+/* Off-schedule badge */
+.cc-off-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.5rem;
+  color: var(--text3); background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border2); border-radius: 20px;
+  padding: 2px 8px; margin-bottom: 7px;
+}
+
 .no-class { background:var(--surface); border:1px dashed var(--border2); border-radius:var(--radius); padding:28px 16px; text-align:center; color:var(--text3); font-size:0.8rem; }
 .no-class .big { font-size:1.5rem; margin-bottom:5px; }
 
@@ -255,15 +384,15 @@ body::after {
 .btn-add { background:rgba(108,99,255,0.12); color:var(--accent); border:1.5px solid rgba(108,99,255,0.3); border-radius:var(--radius-sm); padding:9px 14px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap; transition:background 0.15s; }
 .btn-add:hover { background:rgba(108,99,255,0.22); }
 .task-list { display:flex; flex-direction:column; gap:6px; }
-.task-item { background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius-sm); padding:10px 12px; display:flex; align-items:flex-start; gap:10px; cursor:pointer; transition:all 0.15s; }
+.task-item { background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius-sm); padding:7px 9px; display:flex; align-items:flex-start; gap:8px; cursor:pointer; transition:all 0.15s; }
 .task-item:hover { border-color:rgba(108,99,255,0.25); }
 .task-item.done { opacity:0.4; }
 .task-item.done .task-lbl { text-decoration:line-through; }
-.task-check { width:18px; height:18px; border-radius:4px; border:1.5px solid var(--border2); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.15s; margin-top:1px; }
+.task-check { width:16px; height:16px; border-radius:4px; border:1.5px solid var(--border2); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.15s; margin-top:1px; }
 .task-item.done .task-check { background:var(--accent3); border-color:var(--accent3); }
 .task-item.done .task-check::after { content:'✓'; color:#000; font-size:0.62rem; font-weight:700; }
-.task-lbl { font-size:0.82rem; flex:1; line-height:1.35; }
-.task-sub { font-size:0.62rem; color:var(--text3); margin-top:2px; font-family:'IBM Plex Mono',monospace; }
+.task-lbl { font-size:0.75rem; flex:1; line-height:1.3; }
+.task-sub { font-size:0.58rem; color:var(--text3); margin-top:2px; font-family:'IBM Plex Mono',monospace; }
 .task-badge { font-size:0.56rem; padding:2px 7px; border-radius:20px; font-weight:600; letter-spacing:0.04em; white-space:nowrap; align-self:center; }
 .bdg-phy { background:rgba(123,111,255,0.1); color:var(--physics); border:1px solid rgba(123,111,255,0.22); }
 .bdg-chem { background:rgba(46,212,160,0.1); color:var(--chemistry); border:1px solid rgba(46,212,160,0.22); }
@@ -1646,7 +1775,9 @@ body::after {
     <div class="alert-zone" id="alertZone"></div>
     <div class="quote-bar" id="dailyQuote">—</div>
     <div class="card">
-      <div class="sec-label">Today's Classes</div>
+      <div class="today-classes-hdr">
+        <div class="today-classes-title">Today's Classes</div>
+      </div>
       <div class="class-grid" id="classTracker"><div class="no-class"><div class="big">⏳</div>Loading…</div></div>
     </div>
     <div class="card">
@@ -2494,9 +2625,9 @@ function renderAlerts(ts,dow){
     const totalTodayTasks=todaySubjects.length*3;
     const remaining=totalTodayTasks-todayDone;
     if(todayDone===0){
-      html+=`<div class="alert alert-danger"><span class="alert-icon">🔴</span>${totalTodayTasks} tasks left today — get started!</div>`;
+      html+=`<div class="alert alert-danger"><span class="alert-icon">🔴</span>${totalTodayTasks} tasks left today — get started! <span onclick="switchTab('study')" style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;cursor:pointer;opacity:0.8;white-space:nowrap;">View all ›</span></div>`;
     } else if(remaining>0){
-      html+=`<div class="alert alert-warn"><span class="alert-icon">⏳</span>${remaining} task${remaining>1?'s':''} left today</div>`;
+      html+=`<div class="alert alert-warn"><span class="alert-icon">⏳</span>${remaining} task${remaining>1?'s':''} left today <span onclick="switchTab('study')" style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;cursor:pointer;opacity:0.8;white-space:nowrap;">View all ›</span></div>`;
     }
   }
   const nextTest=tests.find(t=>getDaysLeft(t.date)>=0);
@@ -2541,20 +2672,67 @@ function renderTracker(dow,ts){
   const attended=JSON.parse(localStorage.getItem('attended_'+ts)||'{}');
   const slots=subjects.map((subj,i)=>({time:i===0?SLOT1:SLOT2,subj,slot:'s'+(i+1)}));
   let html='';
+  const ICONS={
+    /* Atom: thin ellipse orbits + filled circles at intersection points */
+    phy:`<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#7b6fff" stroke-width="1.4">
+        <ellipse cx="60" cy="60" rx="52" ry="20"/>
+        <ellipse cx="60" cy="60" rx="52" ry="20" transform="rotate(60 60 60)"/>
+        <ellipse cx="60" cy="60" rx="52" ry="20" transform="rotate(-60 60 60)"/>
+        <!-- filled dots at orbit intersections -->
+        <circle cx="60" cy="40" r="4" fill="#7b6fff"/>
+        <circle cx="60" cy="80" r="4" fill="#7b6fff"/>
+        <circle cx="83" cy="51" r="4" fill="#7b6fff"/>
+        <circle cx="37" cy="51" r="4" fill="#7b6fff"/>
+        <circle cx="83" cy="69" r="4" fill="#7b6fff"/>
+        <circle cx="37" cy="69" r="4" fill="#7b6fff"/>
+        <!-- nucleus -->
+        <circle cx="60" cy="60" r="6" fill="#7b6fff" opacity="0.7"/>
+      </g>
+    </svg>`,
+    /* Proper isometric 3D cube with dashed hidden edges */
+    math:`<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#f0a500" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Top face -->
+        <path d="M60 15 L100 37 L60 59 L20 37 Z"/>
+        <!-- Left face -->
+        <path d="M20 37 L20 80 L60 102 L60 59 Z"/>
+        <!-- Right face -->
+        <path d="M100 37 L100 80 L60 102 L60 59 Z"/>
+        <!-- Hidden back edges (dashed) -->
+        <line x1="60" y1="15" x2="60" y2="59" stroke-dasharray="3,3" opacity="0.5"/>
+        <line x1="20" y1="37" x2="60" y2="59" stroke-dasharray="3,3" opacity="0.5"/>
+        <line x1="100" y1="37" x2="60" y2="59" stroke-dasharray="3,3" opacity="0.5"/>
+      </g>
+    </svg>`,
+    /* Chemistry: conical flask */
+    chem:`<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#2ed4a0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M45 15 h30 v35 l28 48 a5 5 0 0 1-4.5 7 H21.5 a5 5 0 0 1-4.5-7 l28-48 V15z"/>
+        <line x1="17" y1="76" x2="103" y2="76"/>
+        <line x1="45" y1="15" x2="75" y2="15"/>
+      </g>
+    </svg>`
+  };
+
   slots.forEach(s=>{
     if(!s.subj) return;
     const lec=getLecForSubj(s.subj,ts);
     const sc=subjCss(s.subj);
     const isAtt=attended[s.slot]||false;
     html+=`<div class="class-card cc-${sc}">
+      <span class="cc-icon">${ICONS[sc]||''}</span>
       <div class="cc-head">
         <div class="cc-time">${s.time}</div>
         <div class="cc-attend ${isAtt?'done':''}" onclick="toggleAttend('${s.slot}','${ts}')" title="Mark attended">✓</div>
       </div>
       <div class="cc-subj">${s.subj}</div>
       <div class="cc-meta">
-        <div class="meta-item"><div class="meta-lbl">Chapter</div><div class="meta-val">${lec?lec.ch:'See planner'}</div></div>
-        <div class="meta-item"><div class="meta-lbl">Lecture</div><div class="meta-val lec-num lec-${sc}">${lec?'#'+lec.n:'—'}</div></div>
+        <div class="cc-meta-row">
+          <div class="meta-item"><div class="meta-lbl">Chapter</div><div class="meta-val">${lec?lec.ch:'See planner'}</div></div>
+          <div class="meta-item"><div class="meta-lbl">Lecture</div><div class="meta-val lec-num lec-${sc}">${lec?'#'+lec.n:'—'}</div></div>
+        </div>
+        <div class="cc-divider"></div>
         <div class="meta-item cc-meta-full"><div class="meta-lbl">Topic</div><div class="meta-val">${lec?lec.topic:'—'}</div></div>
       </div>
     </div>`;
