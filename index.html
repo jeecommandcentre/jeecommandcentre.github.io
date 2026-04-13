@@ -412,7 +412,7 @@ body::after {
 .btn-add { background:rgba(108,99,255,0.12); color:var(--accent); border:1.5px solid rgba(108,99,255,0.3); border-radius:var(--radius-sm); padding:9px 14px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap; transition:background 0.15s; }
 .btn-add:hover { background:rgba(108,99,255,0.22); }
 .task-list { display:flex; flex-direction:column; gap:6px; }
-.task-item { background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius-sm); padding:7px 9px; display:flex; align-items:flex-start; gap:8px; cursor:pointer; transition:all 0.15s; }
+.task-item { background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius-sm); padding:7px 9px; display:flex; align-items:flex-start; gap:8px; cursor:pointer; transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1), opacity 0.18s, box-shadow 0.18s, border-color 0.18s; }
 .task-item:hover { border-color:rgba(108,99,255,0.25); }
 .task-item.done { opacity:0.4; }
 .task-item.done .task-lbl { text-decoration:line-through; }
@@ -537,8 +537,8 @@ body::after {
 .task-check.pop { animation:tickPop 0.25s ease; }
 @keyframes numPop { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
 .stat-val.pop { animation:numPop 0.2s ease; }
-.task-item.dragging { opacity:0.3; transform:scale(0.97); }
-.task-item.drag-over { border-color:rgba(108,99,255,0.5); background:rgba(108,99,255,0.06); transform:scale(1.01); }
+.task-item.dragging { opacity:0.35; transform:scale(0.96) rotate(-1deg); box-shadow:0 8px 28px rgba(108,99,255,0.3); }
+.task-item.drag-over { border-color:rgba(108,99,255,0.6) !important; background:rgba(108,99,255,0.08); transform:translateY(-5px); box-shadow:0 0 0 2px rgba(108,99,255,0.2), 0 6px 20px rgba(108,99,255,0.15); }
 
 /* SUB-LABEL util */
 .tab-section-lbl { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
@@ -660,6 +660,50 @@ body::after {
 .task-item:nth-child(4) { animation-delay:90ms; }
 .task-item:nth-child(5) { animation-delay:120ms; }
 
+@keyframes shakeX {
+  0%,100%{ transform:translateX(0); }
+  20%    { transform:translateX(-7px); }
+  40%    { transform:translateX(7px); }
+  60%    { transform:translateX(-5px); }
+  80%    { transform:translateX(5px); }
+}
+.cc-attend.shake { animation: shakeX 0.38s ease; }
+
+@keyframes attendPulse {
+  0%   { box-shadow:0 0 0 0 rgba(0,229,160,0.6); transform:scale(1); }
+  40%  { box-shadow:0 0 0 10px rgba(0,229,160,0); transform:scale(1.22); }
+  100% { box-shadow:0 0 0 0 rgba(0,229,160,0); transform:scale(1); }
+}
+.cc-attend.pulse-success { animation: attendPulse 0.45s ease; }
+
+/* ❌ Invalid click — red X feedback */
+.cc-attend.attend-error {
+  border-color: var(--danger) !important;
+  background: rgba(255,77,109,0.15) !important;
+  color: var(--danger) !important;
+  box-shadow: 0 0 8px rgba(255,77,109,0.35);
+}
+
+/* Class time toast — two variants */
+.class-early-toast {
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(10px);
+  color:#fff;
+  font-family:'IBM Plex Mono',monospace; font-size:0.72rem; font-weight:600;
+  padding:9px 18px; border-radius:20px; z-index:9999;
+  white-space:nowrap; opacity:0;
+  transition:opacity 0.22s, transform 0.22s;
+  pointer-events:none;
+  /* default: "in progress" = danger red */
+  background:rgba(255,77,109,0.95);
+  box-shadow:0 4px 18px rgba(255,77,109,0.4);
+}
+.class-early-toast.warn {
+  /* "not started" = amber/warn */
+  background:rgba(240,165,0,0.95);
+  box-shadow:0 4px 18px rgba(240,165,0,0.4);
+}
+.class-early-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
 /* Task check sparkle */
 @keyframes checkPop {
   0%   { transform:scale(0.5) rotate(-15deg); opacity:0; }
@@ -689,7 +733,7 @@ body::after {
 .class-card:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,0.18); }
 
 /* Attendance tick bounce */
-.cc-attend { transition: transform 0.15s, background 0.2s, border-color 0.2s, box-shadow 0.2s; }
+.cc-attend { transition: transform 0.15s, background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.15s; }
 .cc-attend:active { transform: scale(0.85); }
 .cc-attend.done { animation: checkPop 0.15s cubic-bezier(0.34,1.56,0.64,1) both; }
 
@@ -1378,14 +1422,6 @@ body::after {
 .install-dismiss { background: none; border: none; color: var(--text3); font-size: 1rem; cursor: pointer; padding: 2px 5px; flex-shrink: 0; line-height: 1; }
 
 </style>
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-9ZSJEDCPJX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-9ZSJEDCPJX');
-</script>
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-9ZSJEDCPJX"></script>
 <script>
@@ -2602,7 +2638,9 @@ function init(){
   renderLog(dow,ts);
   renderUpcomingTests();
   refreshClassCount(ts);
+  selDay=ts; // default weekly selection to today
   renderWeekly(null);
+  updateDayDetail();
   initWeeklySwipe();
   renderAlerts(ts,dow);
   loadSylChecks();
@@ -2647,22 +2685,30 @@ function renderAlerts(ts,dow){
   const zone=document.getElementById('alertZone');
   if(!zone) return;
   let html='';
+
+  // 1. Backlog warning
   const backlogCount=getBacklogCount();
   if(backlogCount>0){
-    html+=`<div class="alert alert-warn"><span class="alert-icon">⚠️</span>Backlog: ${backlogCount} task${backlogCount>1?'s':''} left from yesterday</div>`;
+    html+=`<div class="alert alert-danger"><span class="alert-icon">📥</span>${backlogCount} task${backlogCount>1?'s':''} from backlog still pending <span onclick="switchTab('study')" style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;cursor:pointer;opacity:0.8;white-space:nowrap;">Clear ›</span></div>`;
   }
+
+  // 2. Class about to start in 5 min
   const todaySubjects=getSubjectsForDate(ts);
   if(todaySubjects.length>0){
-    const todaySaved=JSON.parse(localStorage.getItem('tasks_'+ts)||'{}');
-    const todayDone=Object.values(todaySaved).filter(Boolean).length;
-    const totalTodayTasks=todaySubjects.length*3;
-    const remaining=totalTodayTasks-todayDone;
-    if(todayDone===0){
-      html+=`<div class="alert alert-danger"><span class="alert-icon">🔴</span>${totalTodayTasks} tasks left today — get started! <span onclick="switchTab('study')" style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;cursor:pointer;opacity:0.8;white-space:nowrap;">View all ›</span></div>`;
-    } else if(remaining>0){
-      html+=`<div class="alert alert-warn"><span class="alert-icon">⏳</span>${remaining} task${remaining>1?'s':''} left today <span onclick="switchTab('study')" style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;cursor:pointer;opacity:0.8;white-space:nowrap;">View all ›</span></div>`;
-    }
+    const now=new Date();
+    const nowMins=now.getHours()*60+now.getMinutes();
+    todaySubjects.forEach((subj,i)=>{
+      const slot=getSlotTime(i);
+      const slotMins=slot.h*60+slot.m;
+      const diff=slotMins-nowMins;
+      if(diff>=0&&diff<=5){
+        const subjectColor=subj==='Physics'?'alert-info':isChemType(subj)?'alert-ok':'alert-warn';
+        html+=`<div class="alert ${subjectColor}"><span class="alert-icon">🔔</span>${subj} class starts in ${diff===0?'now':diff+' min'}!</div>`;
+      }
+    });
   }
+
+  // 3. Upcoming test warning
   const nextTest=tests.find(t=>getDaysLeft(t.date)>=0);
   if(nextTest){
     const dl=getDaysLeft(nextTest.date);
@@ -2670,6 +2716,7 @@ function renderAlerts(ts,dow){
       html+=`<div class="alert alert-info"><span class="alert-icon">📋</span>${nextTest.name} in ${dl===0?'TODAY':dl+' day'+(dl>1?'s':'')}</div>`;
     }
   }
+
   if(!html) html=`<div class="alert alert-ok"><span class="alert-icon">✅</span>All good! Keep the momentum.</div>`;
   zone.innerHTML=html;
 }
@@ -2684,7 +2731,11 @@ function getBacklogCount(){
   const backlogSaved=JSON.parse(localStorage.getItem('backlog_done')||'{}');
   const custom=JSON.parse(localStorage.getItem('custom_'+ys)||'[]');
   let dayTasks=[];
-  subjects.forEach((_,i)=>{ dayTasks.push({id:'c'+(i+1)}); dayTasks.push({id:'d'+(i+1)}); dayTasks.push({id:'hw'+(i+1)}); });
+  subjects.forEach((_,i)=>{
+    dayTasks.push({id:'c'+(i+1)});
+    dayTasks.push({id:'hw'+(i+1)});
+    dayTasks.push({id:'d'+(i+1)});
+  });
   custom.forEach(ct=>dayTasks.push({id:ct.id}));
   return dayTasks.filter(t=>!saved[t.id]&&!backlogSaved[ys+'_'+t.id]).length;
 }
@@ -2774,14 +2825,123 @@ function renderTracker(dow,ts){
   refreshClassCount(ts);
 }
 
+function playAttendSuccess(){
+  if(!soundEnabled) return;
+  try{
+    const ctx=getAudioCtx();
+    const vol=parseFloat(localStorage.getItem('sfxVolume')||'60')/60;
+    // Rising chime
+    [0,0.08,0.16].forEach((t,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type='sine';
+      const freqs=[523,659,784]; // C5 E5 G5
+      o.frequency.setValueAtTime(freqs[i],ctx.currentTime+t);
+      g.gain.setValueAtTime(0.32*vol,ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.22);
+      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+0.22);
+    });
+  }catch(e){}
+}
+
+function playAttendError(){
+  if(!soundEnabled) return;
+  try{
+    const ctx=getAudioCtx();
+    const vol=parseFloat(localStorage.getItem('sfxVolume')||'60')/60;
+    // Low buzzy descend — unmistakably "no"
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type='square';
+    o.frequency.setValueAtTime(200,ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(110,ctx.currentTime+0.22);
+    g.gain.setValueAtTime(0.22*vol,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.25);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime+0.25);
+  }catch(e){}
+}
+
+function showClassEarlyToast(msg, type='danger'){
+  let t=document.getElementById('classEarlyToast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='classEarlyToast';
+    t.className='class-early-toast';
+    document.body.appendChild(t);
+  }
+  // Set variant: 'warn' for not-started (amber), 'danger' for in-progress (red)
+  t.classList.toggle('warn', type==='warn');
+  t.textContent=msg;
+  t.classList.remove('show');
+  void t.offsetWidth; // force reflow so transition re-fires if already visible
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
 function toggleAttend(slot,ts){
+  // Determine slot index from slot name (s1→0, s2→1)
+  const slotIdx=parseInt(slot.replace('s',''))-1;
+  const startT=getSlotTime(slotIdx);
+  const endT=getSlotEndTime(slotIdx);
+  const now=new Date();
+  const nowMins=now.getHours()*60+now.getMinutes();
+  const startMins=startT.h*60+startT.m;
+  const endMins=endT.h*60+endT.m;
+
+  const btn=document.querySelector(`.cc-attend[onclick="toggleAttend('${slot}','${ts}')"]`);
+
+  // ── Time-based validation (today only) ──
+  const isToday=(ts===todayStr());
+  if(isToday && nowMins < endMins){
+    let msg, toastType;
+    if(nowMins < startMins){
+      // Case 1: class hasn't started yet
+      const startH=startT.h>12?startT.h-12:startT.h;
+      const startAmPm=startT.h>=12?'PM':'AM';
+      msg=`⛔ Class has not begun yet! Starts at ${startH}:${String(startT.m).padStart(2,'0')} ${startAmPm}`;
+      toastType='warn'; // amber — informational, not an error
+    } else {
+      // Case 2: class is ongoing
+      const endH=endT.h>12?endT.h-12:endT.h;
+      const endAmPm=endT.h>=12?'PM':'AM';
+      msg=`⏳ Class has not finished yet! Ends at ${endH}:${String(endT.m).padStart(2,'0')} ${endAmPm}`;
+      toastType='danger'; // red — trying to mark before class ends
+    }
+    // ❌ Error feedback: sound + shake + red X in checkbox
+    playAttendError();
+    if(btn){
+      const origText=btn.textContent;
+      btn.textContent='✕';
+      btn.classList.remove('shake','attend-error');
+      void btn.offsetWidth;
+      btn.classList.add('shake','attend-error');
+      btn.addEventListener('animationend',()=>{
+        btn.classList.remove('shake');
+        setTimeout(()=>{ btn.classList.remove('attend-error'); btn.textContent=origText; },180);
+      },{once:true});
+    }
+    showClassEarlyToast(msg, toastType);
+    return;
+  }
+
+  // ── Case 3: class has ended — allow check/uncheck ──
   const att=JSON.parse(localStorage.getItem('attended_'+ts)||'{}');
   att[slot]=!att[slot];
   localStorage.setItem('attended_'+ts,JSON.stringify(att));
-  const btn=document.querySelector(`.cc-attend[onclick="toggleAttend('${slot}','${ts}')"]`);
-  if(btn) btn.classList.toggle('done',att[slot]);
+  if(btn){
+    btn.textContent='✓';
+    btn.classList.toggle('done',att[slot]);
+    if(att[slot]){
+      playAttendSuccess();
+      btn.classList.remove('pulse-success');
+      void btn.offsetWidth;
+      btn.classList.add('pulse-success');
+      btn.addEventListener('animationend',()=>btn.classList.remove('pulse-success'),{once:true});
+    }
+  }
   refreshClassCount(ts);
-  renderAlerts(ts,new Date().getDay());
+  renderAlerts(ts,now.getDay());
 }
 
 function refreshClassCount(ts){
@@ -2866,7 +3026,7 @@ function shiftWeek(dir){
   const n=weekOffset+dir;
   if(n<-WEEK_LIM||n>WEEK_LIM) return;
   SFX.weekSwipe(dir);
-  weekOffset=n; selDay=null;
+  weekOffset=n;
   renderWeekly(dir); updateDayDetail();
 }
 
@@ -2957,18 +3117,79 @@ function initWeeklySwipe(){
 // ═══════════════════════════════════════════
 //  STUDY: TASKS
 // ═══════════════════════════════════════════
-function renderLog(dow,ts){
+// ── Subject short name helper ──
+function subjShort(subj){
+  if(subj==='Physics') return 'Phy';
+  if(subj==='Maths'||subj==='Mathematics') return 'Math';
+  if(isChemType(subj)) return 'Chem';
+  return subj.slice(0,4);
+}
+
+// ── Get class slot time as {h,m} for a subject index ──
+function getSlotTime(idx){
+  // SLOT1 = '04:15 PM – 06:00 PM' → 16:15
+  // SLOT2 = '06:30 PM – 08:15 PM' → 18:30
+  return idx===0 ? {h:16,m:15} : {h:18,m:30};
+}
+
+function getSlotEndTime(idx){
+  // SLOT1 ends 18:00, SLOT2 ends 20:15
+  return idx===0 ? {h:18,m:0} : {h:20,m:15};
+}
+
+// ── Build the base task list for a given date (without timing filter) ──
+function buildTasksForDate(ts){
   const subjects=getSubjectsForDate(ts);
-  gSaved=JSON.parse(localStorage.getItem('tasks_'+ts)||'{}');
   const custom=JSON.parse(localStorage.getItem('custom_'+ts)||'[]');
-  gTasks=[];
+  const tasks=[];
   subjects.forEach((subj,i)=>{
     const lec=getLecForSubj(subj,ts);
-    gTasks.push({id:'c'+(i+1),label:`${subj} Class`,sub:lec?`${lec.ch} · Lec #${lec.n} · ${lec.topic}`:"Today's class",badge:subj==='Maths'?'Maths':isChemType(subj)?'Chemistry':'Physics'});
+    const sh=subjShort(subj);
+    const lecLabel=lec?`${sh} Lec #${lec.n}`:`${sh} Class`;
+    const lecSub=lec?`${lec.ch} · ${lec.topic}`:"Today's class";
+    tasks.push({id:'c'+(i+1),label:lecLabel,sub:lecSub,badge:subj==='Maths'?'Maths':isChemType(subj)?'Chemistry':'Physics',slotIdx:i});
+    tasks.push({id:'hw'+(i+1),label:`${sh} Lec #${lec?lec.n:'?'} HW`,sub:"Homework",badge:'HW',slotIdx:i});
+    tasks.push({id:'d'+(i+1),label:`${sh} Lec #${lec?lec.n:'?'} DPP`,sub:'',badge:'DPP',slotIdx:i});
   });
-  subjects.forEach((subj,i)=>{ gTasks.push({id:'d'+(i+1),label:`${subj} DPP`,sub:'Daily Practice Problems',badge:'DPP'}); });
-  subjects.forEach((subj,i)=>{ gTasks.push({id:'hw'+(i+1),label:`${subj} HW`,sub:"Complete today's homework",badge:'HW'}); });
-  custom.forEach(ct=>gTasks.push({id:ct.id,label:ct.label,sub:'Custom',badge:'★',custom:true}));
+  custom.forEach(ct=>tasks.push({id:ct.id,label:ct.label,sub:'Custom',badge:'★',custom:true,slotIdx:-1}));
+  return tasks;
+}
+
+function renderLog(dow,ts){
+  gSaved=JSON.parse(localStorage.getItem('tasks_'+ts)||'{}');
+  const allTasks=buildTasksForDate(ts);
+
+  // Apply saved order if exists
+  const savedOrder=JSON.parse(localStorage.getItem('taskOrder_'+ts)||'null');
+
+  // For today: only show tasks whose class time has passed 10-min threshold
+  const isToday=(ts===todayStr());
+  let visibleTasks;
+  if(isToday){
+    const now=new Date();
+    const nowMins=now.getHours()*60+now.getMinutes();
+    visibleTasks=allTasks.filter(t=>{
+      if(t.custom||t.slotIdx<0) return true; // custom tasks always visible
+      const slot=getSlotTime(t.slotIdx);
+      const triggerMins=slot.h*60+slot.m-10; // 10 min before class
+      return nowMins>=triggerMins;
+    });
+  } else {
+    visibleTasks=allTasks;
+  }
+
+  // Apply saved order
+  if(savedOrder){
+    visibleTasks.sort((a,b)=>{
+      const ai=savedOrder.indexOf(a.id), bi=savedOrder.indexOf(b.id);
+      if(ai===-1&&bi===-1) return 0;
+      if(ai===-1) return 1;
+      if(bi===-1) return -1;
+      return ai-bi;
+    });
+  }
+
+  gTasks=visibleTasks;
   renderTaskList(ts);
 }
 
@@ -3002,7 +3223,68 @@ function addCustomTask(){
   renderTaskList(ts);
 }
 
+function playBinSound(){
+  if(!soundEnabled) return; // Always respect the global mute toggle
+  try{
+    const ctx=getAudioCtx();
+    const volScale=parseFloat(localStorage.getItem('sfxVolume')||'60')/60;
+    // Thud: sine drop (trash-drop feel)
+    const o1=ctx.createOscillator(), g1=ctx.createGain();
+    o1.connect(g1); g1.connect(ctx.destination);
+    o1.type='sine';
+    o1.frequency.setValueAtTime(260,ctx.currentTime);
+    o1.frequency.exponentialRampToValueAtTime(55,ctx.currentTime+0.22);
+    g1.gain.setValueAtTime(0.55*volScale,ctx.currentTime);
+    g1.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.25);
+    o1.start(ctx.currentTime); o1.stop(ctx.currentTime+0.25);
+    // Swoosh: filtered sawtooth (delete swoosh)
+    const o2=ctx.createOscillator(), g2=ctx.createGain();
+    o2.connect(g2); g2.connect(ctx.destination);
+    o2.type='sawtooth';
+    o2.frequency.setValueAtTime(900,ctx.currentTime+0.03);
+    o2.frequency.exponentialRampToValueAtTime(150,ctx.currentTime+0.18);
+    g2.gain.setValueAtTime(0.22*volScale,ctx.currentTime+0.03);
+    g2.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.21);
+    o2.start(ctx.currentTime+0.03); o2.stop(ctx.currentTime+0.21);
+  }catch(e){}
+}
+
 function deleteTask(id,ts){
+  playBinSound();
+  const el=document.getElementById('task_'+id);
+  if(!el){
+    _commitDeleteTask(id,ts);
+    return;
+  }
+  // Lock the current height so it can transition to 0
+  const h=el.offsetHeight;
+  el.style.height=h+'px';
+  el.style.overflow='hidden';
+  void el.offsetHeight; // force layout commit
+
+  // Step 1: slide + fade out instantly (0.18s)
+  el.style.transition='opacity 0.18s ease, transform 0.18s ease';
+  el.style.opacity='0';
+  el.style.transform='translateX(48px) scale(0.88)';
+
+  // Step 2: collapse height right after fade (feels like it falls away)
+  setTimeout(()=>{
+    el.style.transition='height 0.2s ease, padding 0.2s ease, margin 0.2s ease';
+    el.style.height='0';
+    el.style.paddingTop='0';
+    el.style.paddingBottom='0';
+    el.style.marginBottom='0';
+  },170);
+
+  // Step 3: commit data + re-render once collapse is done
+  el.addEventListener('transitionend',function onDone(e){
+    if(e.propertyName!=='height') return;
+    el.removeEventListener('transitionend',onDone);
+    _commitDeleteTask(id,ts);
+  });
+}
+
+function _commitDeleteTask(id,ts){
   const custom=JSON.parse(localStorage.getItem('custom_'+ts)||'[]');
   localStorage.setItem('custom_'+ts,JSON.stringify(custom.filter(t=>t.id!==id)));
   delete gSaved[id];
@@ -3035,12 +3317,14 @@ function refreshCtr(){
 }
 
 function playTick(){
+  if(!soundEnabled) return;
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=getAudioCtx();
+    const volScale=parseFloat(localStorage.getItem('sfxVolume')||'60')/60;
     const o=ctx.createOscillator(),g=ctx.createGain();
     o.connect(g); g.connect(ctx.destination);
     o.type='sine'; o.frequency.setValueAtTime(880,ctx.currentTime); o.frequency.exponentialRampToValueAtTime(1200,ctx.currentTime+0.06);
-    g.gain.setValueAtTime(0.45,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
+    g.gain.setValueAtTime(0.45*volScale,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
     o.start(ctx.currentTime); o.stop(ctx.currentTime+0.15);
   }catch(e){}
 }
@@ -3050,7 +3334,7 @@ let dragId=null;
 function dragStart(e,id){ dragId=id; setTimeout(()=>document.getElementById('task_'+id)?.classList.add('dragging'),0); }
 function dragEnd(){ dragId=null; document.querySelectorAll('.task-item').forEach(el=>{ el.classList.remove('dragging'); el.classList.remove('drag-over'); }); }
 function dragOver(e){ e.preventDefault(); document.querySelectorAll('.task-item').forEach(el=>el.classList.remove('drag-over')); if(!e.currentTarget.classList.contains('dragging')) e.currentTarget.classList.add('drag-over'); }
-function dropTask(e,tid){ e.preventDefault(); document.querySelectorAll('.task-item').forEach(el=>el.classList.remove('drag-over')); if(!dragId||dragId===tid) return; const fi=gTasks.findIndex(t=>t.id===dragId),ti=gTasks.findIndex(t=>t.id===tid); if(fi<0||ti<0) return; const [m]=gTasks.splice(fi,1); gTasks.splice(ti,0,m); renderTaskList(todayStr()); }
+function dropTask(e,tid){ e.preventDefault(); document.querySelectorAll('.task-item').forEach(el=>el.classList.remove('drag-over')); if(!dragId||dragId===tid) return; const fi=gTasks.findIndex(t=>t.id===dragId),ti=gTasks.findIndex(t=>t.id===tid); if(fi<0||ti<0) return; const [m]=gTasks.splice(fi,1); gTasks.splice(ti,0,m); const ts=todayStr(); localStorage.setItem('taskOrder_'+ts,JSON.stringify(gTasks.map(t=>t.id))); renderTaskList(ts); }
 
 // ═══════════════════════════════════════════
 //  STUDY: BACKLOG
@@ -3066,10 +3350,11 @@ function renderBacklog(){
   let dayTasks=[];
   subjects.forEach((subj,i)=>{
     const lec=getLecForSubj(subj,ys);
-    dayTasks.push({id:'c'+(i+1),label:`${subj} Class`,sub:lec?`${lec.ch} · Lec #${lec.n}`:"Class",badge:subj==='Maths'?'Maths':isChemType(subj)?'Chemistry':'Physics'});
+    const sh=subjShort(subj);
+    dayTasks.push({id:'c'+(i+1),label:lec?`${sh} Lec #${lec.n}`:`${sh} Class`,sub:lec?`${lec.ch} · ${lec.topic}`:"Class",badge:subj==='Maths'?'Maths':isChemType(subj)?'Chemistry':'Physics'});
+    dayTasks.push({id:'hw'+(i+1),label:`${sh} Lec #${lec?lec.n:'?'} HW`,sub:"Homework",badge:'HW'});
+    dayTasks.push({id:'d'+(i+1),label:`${sh} Lec #${lec?lec.n:'?'} DPP`,sub:'',badge:'DPP'});
   });
-  subjects.forEach((subj,i)=>{ dayTasks.push({id:'d'+(i+1),label:`${subj} DPP`,sub:'Daily Practice Problems',badge:'DPP'}); });
-  subjects.forEach((subj,i)=>{ dayTasks.push({id:'hw'+(i+1),label:`${subj} HW`,sub:"Homework",badge:'HW'}); });
   custom.forEach(ct=>dayTasks.push({id:ct.id,label:ct.label,sub:'Custom',badge:'★',custom:true}));
   const fromDay=yesterday.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
   const backlogItems=dayTasks.filter(t=>!saved[t.id]&&!backlogSaved[ys+'_'+t.id]);
@@ -3088,7 +3373,7 @@ function renderBacklog(){
       <div class="task-check" onclick="tickBacklog('${bKey}',this.closest('.task-item'))"></div>
       <div style="flex:1;">
         <div class="task-lbl">${t.label} <span style="font-size:0.6rem;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-left:4px">${fromDay}</span></div>
-        <div class="task-sub">${t.sub}</div>
+        ${t.sub?`<div class="task-sub">${t.sub}</div>`:''}
       </div>
       <span class="task-badge ${bc[t.badge]||'bdg-dpp'}">${t.badge}</span>
     </div>`;
@@ -3110,9 +3395,22 @@ function tickBacklog(bKey,el){
   },250);
 }
 
-// ═══════════════════════════════════════════
-//  STUDY: TIMER
-// ═══════════════════════════════════════════
+// ── Periodic task & alert refresh (every 30s) ──
+(function startTaskScheduler(){
+  let lastRenderedMinute=-1;
+  setInterval(function(){
+    const now=new Date();
+    const minute=now.getHours()*60+now.getMinutes();
+    if(minute===lastRenderedMinute) return;
+    lastRenderedMinute=minute;
+    const ts=todayStr();
+    // Re-render tasks (to show newly unlocked tasks)
+    const dow=now.getDay();
+    renderLog(dow,ts);
+    // Refresh alerts (class countdown + backlog)
+    renderAlerts(ts,dow);
+  },30000);
+})();
 let timerInterval=null, timerSeconds=0, timerSubj='', timerRunning=false;
 
 function selFlash(el){
@@ -3231,6 +3529,7 @@ function renderManualEntries(){
 }
 
 function deleteManualEntry(id,ts,hrs,subj){
+  playBinSound(); // consistent delete sound, same as task deletion
   const entries=JSON.parse(localStorage.getItem('manualStudy_'+ts)||'[]').filter(e=>e.id!==id);
   localStorage.setItem('manualStudy_'+ts,JSON.stringify(entries));
   const times=JSON.parse(localStorage.getItem('studyTime_'+ts)||'{}');
@@ -4262,12 +4561,11 @@ async function runAiCommand() {
   inp.focus();
 }
 
-// ── PATCH ATTEND ──
+// ── PATCH ATTEND ── (fixed: pass slot AND ts — original handles all sound/animation)
 const _origToggleAttend = window.toggleAttend;
 if (typeof toggleAttend === 'function') {
-  window.toggleAttend = function(id) {
-    SFX.attendMark();
-    _origToggleAttend(id);
+  window.toggleAttend = function(slot, ts) {
+    _origToggleAttend(slot, ts);
   };
 }
 
@@ -5343,17 +5641,61 @@ function checkNotificationsNow() {
     }
   }
 
-  // ── 3. Backlog reminder (check once per day at 8 AM) ──
-  const backlogKey = 'backlog_remind_' + ds;
-  if (!scheduled[backlogKey] && nowMins >= 8*60 && nowMins < 8*60+5) {
+  // ── 3. Backlog reminders — random times after 5 AM, max 3/day, 4hr gap ──
+  (function(){
     const count = typeof getBacklogCount === 'function' ? getBacklogCount() : 0;
-    if (count > 0) {
-      addNotif(`⚠️ You have ${count} backlog task${count > 1 ? 's' : ''} pending. Complete your backlog!`, 'warn');
-      sendPush('⚠️ Backlog Tasks!', `You have ${count} pending task${count > 1 ? 's' : ''} from yesterday.`);
+    if (count <= 0) return;
+
+    const MAX_NOTIFS = 3;
+    const MIN_GAP_MINS = 4 * 60; // 4 hours
+    const START_MINS = 5 * 60;   // 5:00 AM
+
+    // Load today's backlog notification log
+    const logKey = 'backlog_notif_log_' + ds;
+    let notifLog = JSON.parse(localStorage.getItem(logKey) || '[]'); // array of minute-timestamps sent today
+
+    // Clean stale (shouldn't happen, but safety)
+    notifLog = notifLog.filter(m => m >= 0 && m < 1440);
+
+    if (notifLog.length >= MAX_NOTIFS) return; // already sent max today
+
+    // Determine if enough time has passed since last notification
+    const lastSent = notifLog.length > 0 ? notifLog[notifLog.length - 1] : -9999;
+    if (nowMins - lastSent < MIN_GAP_MINS) return;
+    if (nowMins < START_MINS) return;
+
+    // Build list of candidate trigger times if not set yet
+    const triggerKey = 'backlog_triggers_' + ds;
+    let triggers = JSON.parse(localStorage.getItem(triggerKey) || 'null');
+    if (!triggers) {
+      // Generate 3 random times spread across the day after 5 AM
+      const windows = [
+        [5*60, 9*60],    // 5–9 AM
+        [11*60, 15*60],  // 11 AM–3 PM
+        [17*60, 21*60],  // 5–9 PM
+      ];
+      triggers = windows.map(([lo, hi]) => lo + Math.floor(Math.random() * (hi - lo)));
+      triggers.sort((a,b)=>a-b);
+      localStorage.setItem(triggerKey, JSON.stringify(triggers));
     }
-    scheduled[backlogKey] = true;
-    saveScheduled(scheduled);
-  }
+
+    // Check if current minute matches any trigger (±2 min window)
+    const matchedTrigger = triggers.find(t => nowMins >= t && nowMins <= t + 2 && !notifLog.find(sent => Math.abs(sent - t) <= 5));
+    if (!matchedTrigger) return;
+
+    // Send notification
+    const msgs = [
+      `📥 You still have ${count} backlog task${count>1?'s':''} pending. Catch up now!`,
+      `⏰ Backlog reminder: ${count} task${count>1?'s':''} left from yesterday. Don't let it pile up!`,
+      `🔁 ${count} unfinished task${count>1?'s':''} in backlog. Quick, finish them!`,
+    ];
+    const msgIdx = notifLog.length % msgs.length;
+    addNotif(msgs[msgIdx], 'warn');
+    sendPush('📥 Backlog Pending', msgs[msgIdx]);
+
+    notifLog.push(nowMins);
+    localStorage.setItem(logKey, JSON.stringify(notifLog));
+  })();
 }
 
 // ── Scheduler loop (runs every minute) ──
