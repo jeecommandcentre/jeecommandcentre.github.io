@@ -5918,6 +5918,7 @@ function closeInAppBrowser() {
 (function(){
 
 const ENCODE_ID = '8Sbf0Y2UObtsy34z3TA4p1T3sRpXqNVMULMMrc2zr0E5ZGv-2NHp1cplKWGbvE2VybdXSGORTB6AxBm_hf99MJHy_tI37xKnX3mhRtu0vd6rbaVEIVkSTplAeWugh3bvQIaxD91ycT7XzAQqy5z-NfaRkQpHxrEom36-0xptxyG3UG_rmTJGuZHow8LvhK8_PKLXi';
+const PROXY = 'https://corsproxy.io/?url=';
 const BATCH_URL = 'https://rarestudy.site/subjects/' + ENCODE_ID;
 const MEDIA_URL = 'https://rarestudy.site/media/' + ENCODE_ID;
 const VERIFY_URL = 'https://rarestudy.site/api/verify-key';
@@ -5941,10 +5942,9 @@ async function pwGetKey() {
   btn.disabled = true;
   status.textContent = 'Requesting key...';
   try {
-    const r = await fetch(VERIFY_URL, {
+    const r = await fetch(PROXY + encodeURIComponent(VERIFY_URL), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', 'x-requested-with': 'XMLHttpRequest' },
       body: JSON.stringify({ referrer: 'https://tipsguru.in/' })
     });
     const d = await r.json();
@@ -6057,7 +6057,7 @@ async function pwLoadToday() {
   const list = document.getElementById('pwTodayList');
   list.innerHTML = '<div class="pw-loading">Loading today\'s classes</div>';
   try {
-    const r = await fetch(BATCH_URL, { credentials: 'include' });
+    const r = await fetch(PROXY + encodeURIComponent(BATCH_URL));
     if (r.status === 302 || r.url.includes('keygenerate')) throw new Error('Need key');
     const html = await r.text();
     const classes = pwParseSchedule(html);
@@ -6190,7 +6190,7 @@ async function pwWatchClass(mediaId, title) {
       ? mediaId
       : `https://rarestudy.site/media/${mediaId}`;
 
-    const r = await fetch(url, { credentials: 'include' });
+    const r = await fetch(PROXY + encodeURIComponent(url));
     const html = await r.text();
 
     // Extract VIDEO_DATA
