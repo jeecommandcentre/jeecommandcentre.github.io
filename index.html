@@ -6021,34 +6021,50 @@ function pwSubjectLabel(subj) {
 function pwParseSchedule(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const cards = doc.querySelectorAll('a.card, .card');
   const classes = [];
 
+  // Try multiple card selectors
+  const cardSelectors = ['a.card', '.card', 'a[href*="/media/"]', 'a[href*="/content/"]', '.class-card', '.lecture-card'];
+  let cards = [];
+  for (const sel of cardSelectors) {
+    cards = doc.querySelectorAll(sel);
+    if (cards.length > 0) break;
+  }
+
+  // If no cards found, try parsing all links
+  if (cards.length === 0) {
+    cards = doc.querySelectorAll('a[href]');
+  }
+
   cards.forEach(card => {
-    const topicEl = card.querySelector('.topic');
-    const subjectEl = card.querySelector('.subject');
-    const timeEl = card.querySelector('.time');
-    const statusEl = card.querySelector('.tag');
+    const text = card.textContent || '';
     const href = card.getAttribute('href') || '';
 
-    if (!topicEl && !subjectEl) return;
+    // Only process if contains target teacher
+    if (!pwIsTargetTeacher(text)) return;
 
-    const topic = topicEl ? topicEl.textContent.trim() : '';
+    // Extract topic - try multiple selectors
+    const topicEl = card.querySelector('.topic, .title, h3, h4, .class-title, .lecture-title');
+    const subjectEl = card.querySelector('.subject, .teacher, .instructor');
+    const timeEl = card.querySelector('.time, .schedule-time, .class-time');
+    const statusEl = card.querySelector('.tag, .status, .badge, [class*="live"], [class*="upcoming"]');
+
+    const topic = topicEl ? topicEl.textContent.trim() : text.split('\n').filter(t => t.trim()).slice(0,2).join(' - ').trim();
     const subject = subjectEl ? subjectEl.textContent.trim() : '';
-    const time = timeEl ? timeEl.textContent.trim().replace(/[^\d:APM ]/g,'').trim() : '';
-    const statusText = statusEl ? statusEl.textContent.trim().toLowerCase() : '';
+    const time = timeEl ? timeEl.textContent.replace(/[^\d:APM ]/g,'').trim() : '';
 
-    const combined = topic + ' ' + subject;
-    if (!pwIsTargetTeacher(combined)) return;
-
+    const statusText = (statusEl ? statusEl.textContent : '') + ' ' + (card.className || '');
     let status = 'ended';
-    if (statusText.includes('live')) status = 'live';
-    else if (statusText.includes('upcoming')) status = 'upcoming';
+    if (statusText.toLowerCase().includes('live')) status = 'live';
+    else if (statusText.toLowerCase().includes('upcoming')) status = 'upcoming';
 
+    const combined = topic + ' ' + subject + ' ' + text;
     const subj = pwDetectSubject(combined);
-    const mediaId = href.split('/').pop();
+    const mediaId = href.split('/').filter(Boolean).pop() || '';
 
-    classes.push({ topic, subject, time, status, subj, mediaId, href });
+    if (topic || subject) {
+      classes.push({ topic: topic || subject, subject, time, status, subj, mediaId, href });
+    }
   });
 
   return classes;
@@ -6064,7 +6080,12 @@ async function pwLoadToday() {
     const html = await r.text();
     const classes = pwParseSchedule(html);
     if (classes.length === 0) {
-      list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:0.8rem;">No classes found for today<br><span style="font-size:0.65rem;margin-top:4px;display:block;">Try refreshing or check rarestudy.site</span></div>';
+      const preview = html.substring(0, 300).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      list.innerHTML = `<div style="padding:12px;color:var(--text3);font-size:0.72rem;">
+        No target teachers found in today's schedule.<br><br>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.5rem;background:var(--surface2);padding:8px;border-radius:6px;word-break:break-all;max-height:100px;overflow:hidden;">${preview}</div>
+        <button onclick="window.open('https://rarestudy.site/subjects/${ENCODE_ID}','_blank')" style="margin-top:10px;width:100%;background:rgba(108,99,255,0.12);color:var(--accent);border:1.5px solid rgba(108,99,255,0.3);border-radius:8px;padding:8px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;">Open on RareStudy →</button>
+      </div>`;
       return;
     }
     list.innerHTML = classes.map(c => pwRenderCard(c)).join('');
