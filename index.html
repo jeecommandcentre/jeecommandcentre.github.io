@@ -101,6 +101,34 @@ body::after {
   font-size: 0.73rem; color: var(--text2); font-style: italic; line-height: 1.45;
 }
 
+/* ── PW TAB ── */
+.pw-class-card{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px;margin-bottom:8px;position:relative;overflow:hidden;}
+.pw-class-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.pw-phy::before{background:var(--physics);}
+.pw-chem::before{background:var(--chemistry);}
+.pw-math::before{background:var(--maths);}
+.pw-other::before{background:var(--text3);}
+.pw-subj{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;}
+.pw-phy .pw-subj{color:var(--physics);}
+.pw-chem .pw-subj{color:var(--chemistry);}
+.pw-math .pw-subj{color:var(--maths);}
+.pw-status-tag{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:0.06em;}
+.pw-tag-live{background:rgba(255,77,109,0.15);color:var(--danger);border:1px solid rgba(255,77,109,0.3);animation:pwPulse 1.5s infinite;}
+.pw-tag-upcoming{background:rgba(240,165,0,0.1);color:var(--warn);border:1px solid rgba(240,165,0,0.25);}
+.pw-tag-ended{background:rgba(85,88,120,0.15);color:var(--text3);border:1px solid rgba(85,88,120,0.2);}
+@keyframes pwPulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.pw-topic{font-size:0.78rem;color:var(--text);margin-bottom:4px;font-weight:500;line-height:1.35;}
+.pw-time{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--text3);margin-bottom:8px;}
+.pw-btn-row{display:flex;gap:6px;}
+.pw-watch-btn{flex:1;background:rgba(108,99,255,0.12);color:var(--accent);border:1.5px solid rgba(108,99,255,0.3);border-radius:var(--radius-sm);padding:7px;font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;cursor:pointer;text-align:center;transition:background 0.15s;}
+.pw-watch-btn:hover{background:rgba(108,99,255,0.22);}
+.pw-notes-btn{background:rgba(0,229,160,0.08);color:var(--accent3);border:1.5px solid rgba(0,229,160,0.2);border-radius:var(--radius-sm);padding:7px 10px;font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;cursor:pointer;}
+.pw-filter-btn{background:var(--surface2);border:1.5px solid var(--border2);border-radius:20px;padding:4px 12px;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;font-weight:600;color:var(--text3);cursor:pointer;transition:all 0.15s;letter-spacing:0.04em;}
+.pw-filter-btn.active{border-color:rgba(108,99,255,0.4);color:var(--accent);background:rgba(108,99,255,0.08);}
+.pw-batch-section-title{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.pw-loading{text-align:center;padding:30px;color:var(--text3);font-size:0.8rem;font-family:'IBM Plex Mono',monospace;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
 /* ── BOTTOM TAB NAV ── */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
@@ -2135,34 +2163,59 @@ body::after {
 
   <!-- AI TAB -->
   <div class="tab-content" id="tab-syllabus">
-    <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 160px);min-height:400px;">
-      <div class="sec-label" style="margin-bottom:8px;">🤖 AI Assistant <span style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--accent3);background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.18);padding:2px 8px;border-radius:20px;margin-left:4px;">Offline ✓</span></div>
-      <!-- Chat messages -->
-      <div id="aiChatMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;">
-        <div class="ai-bubble ai-bubble-bot">
-          <div class="ai-avatar">🤖</div>
-          <div class="ai-bubble-text" id="aiGreeting" style="white-space:pre-wrap;">Hey! 👋 I'm your JEE Study Assistant — built right into this app.
+    <div class="wrap" style="padding-bottom:90px;">
 
-I know all your tasks, attendance, study time and progress. Ask me about your schedule, get study tips, plan your day, or ask any JEE concept from Physics, Chemistry or Maths.
-
-I work 100% offline — no internet needed! 🚀</div>
+      <!-- KEY STATUS BAR -->
+      <div id="pwKeyBar" style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="pwKeyDot" style="width:8px;height:8px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0;"></span>
+          <span id="pwKeyStatus" style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--text2);">Checking key...</span>
         </div>
+        <button id="pwKeyBtn" onclick="pwGetKey()" style="background:rgba(108,99,255,0.12);color:var(--accent);border:1.5px solid rgba(108,99,255,0.3);border-radius:var(--radius-sm);padding:5px 12px;font-family:'Syne',sans-serif;font-weight:700;font-size:0.72rem;cursor:pointer;">Get Key</button>
       </div>
-      <!-- Input row -->
-      <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2);">
-        <input class="task-input" id="aiInput" placeholder="Ask me anything…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();runAiCommand();}" style="flex:1;">
-        <button class="btn-add" id="aiSendBtn" onclick="runAiCommand()" style="padding:9px 16px;">→</button>
+
+      <!-- SUBTABS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+        <button class="study-subtab active" id="pwtab-today" onclick="pwSwitchSub('today')">📅 Today</button>
+        <button class="study-subtab" id="pwtab-batch" onclick="pwSwitchSub('batch')">📚 Full Batch</button>
       </div>
-      <!-- Quick prompts -->
-      <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
-        <button class="ai-quick" onclick="aiQuick('Attendance today?')">🏫 Attendance</button>
-        <button class="ai-quick" onclick="aiQuick('Upcoming tests?')">📋 Next test</button>
-        <button class="ai-quick" onclick="aiQuick('How many tasks left today?')">✅ Tasks left</button>
-        <button class="ai-quick" onclick="aiQuick('Create Physics HW and Chemistry DPP')">➕ Create tasks</button>
-        <button class="ai-quick" onclick="aiQuick('How much have I studied today?')">⏱ Study time</button>
-        <button class="ai-quick" onclick="aiQuick('Days left to JEE?')">📅 Days left</button>
+
+      <!-- TODAY PANEL -->
+      <div id="pwpanel-today">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="sec-label" style="margin-bottom:0;">Today's Classes</div>
+          <button onclick="pwLoadToday()" style="background:rgba(0,229,160,0.08);color:var(--accent3);border:1px solid rgba(0,229,160,0.2);border-radius:20px;padding:3px 10px;font-size:0.6rem;font-family:'IBM Plex Mono',monospace;cursor:pointer;">↻ Refresh</button>
+        </div>
+        <div id="pwTodayList"><div style="text-align:center;padding:30px;color:var(--text3);font-size:0.8rem;">Tap Refresh to load today's classes</div></div>
       </div>
+
+      <!-- BATCH PANEL -->
+      <div id="pwpanel-batch" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="sec-label" style="margin-bottom:0;">Lakshya JEE 2027</div>
+          <button onclick="pwLoadBatch()" style="background:rgba(0,229,160,0.08);color:var(--accent3);border:1px solid rgba(0,229,160,0.2);border-radius:20px;padding:3px 10px;font-size:0.6rem;font-family:'IBM Plex Mono',monospace;cursor:pointer;">↻ Refresh</button>
+        </div>
+        <!-- Subject filter -->
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+          <button class="pw-filter-btn active" onclick="pwFilterSubject('all')" data-subj="all">All</button>
+          <button class="pw-filter-btn" onclick="pwFilterSubject('physics')" data-subj="physics" style="color:var(--physics);">⚡ Physics</button>
+          <button class="pw-filter-btn" onclick="pwFilterSubject('chemistry')" data-subj="chemistry" style="color:var(--chemistry);">🧪 Chem</button>
+          <button class="pw-filter-btn" onclick="pwFilterSubject('maths')" data-subj="maths" style="color:var(--maths);">📐 Maths</button>
+        </div>
+        <div id="pwBatchList"><div style="text-align:center;padding:30px;color:var(--text3);font-size:0.8rem;">Tap Refresh to load batch content</div></div>
+      </div>
+
     </div>
+  </div>
+
+  <!-- VIDEO PLAYER OVERLAY -->
+  <div id="pwVideoOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:99999;flex-direction:column;">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(0,0,0,0.8);border-bottom:1px solid rgba(255,255,255,0.1);">
+      <button onclick="pwCloseVideo()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      <div id="pwVideoTitle" style="font-family:'Syne',sans-serif;font-size:0.85rem;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    </div>
+    <video id="pwVideoEl" controls playsinline style="width:100%;flex:1;background:#000;max-height:calc(100vh - 60px);" controlsList="nodownload"></video>
+    <div id="pwVideoStatus" style="padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.4);text-align:center;"></div>
   </div>
 
 </div>
@@ -2187,7 +2240,7 @@ I work 100% offline — no internet needed! 🚀</div>
     </span>
     Performance
   </button>
-  <button class="nav-btn" id="nav-syllabus" onclick="window.open('https://pwthor.site/study/batches/6779345c20fa0756e4a7fd08','_blank')">
+  <button class="nav-btn" id="nav-syllabus" onclick="switchTab('syllabus');pwTabInit()">
     <span class="nav-icon">
       <img src="https://images.seeklogo.com/logo-png/47/1/physics-wallah-logo-png_seeklogo-474856.png" alt="PW" style="width:22px;height:22px;object-fit:contain;display:inline-block;vertical-align:middle;border-radius:4px;">
     </span>
@@ -5857,5 +5910,380 @@ function closeInAppBrowser() {
     const btn = document.getElementById('installBtn');
     if (btn) btn.textContent = 'How to Install';
   }
+})();
+</script>
+
+<!-- ══ PW LIVE TAB SYSTEM ══ -->
+<script>
+(function(){
+
+const ENCODE_ID = '8Sbf0Y2UObtsy34z3TA4p1T3sRpXqNVMULMMrc2zr0E5ZGv-2NHp1cplKWGbvE2VybdXSGORTB6AxBm_hf99MJHy_tI37xKnX3mhRtu0vd6rbaVEIVkSTplAeWugh3bvQIaxD91ycT7XzAQqy5z-NfaRkQpHxrEom36-0xptxyG3UG_rmTJGuZHow8LvhK8_PKLXi';
+const BATCH_URL = 'https://rarestudy.site/subjects/' + ENCODE_ID;
+const MEDIA_URL = 'https://rarestudy.site/media/' + ENCODE_ID;
+const VERIFY_URL = 'https://rarestudy.site/api/verify-key';
+const BATCHES_URL = 'https://rarestudy.github.io/rarestudy/pwbatches.json';
+
+// Target teachers
+const TARGET_TEACHERS = ['saleem', 'faisal', 'razaq', 'tarun', 'khandelwal'];
+
+// State
+let pwCurrentFilter = 'all';
+let pwBatchData = null;
+let pwKeyValid = false;
+let pwVideoHls = null;
+
+// ── Key Management ──
+async function pwGetKey() {
+  const btn = document.getElementById('pwKeyBtn');
+  const status = document.getElementById('pwKeyStatus');
+  const dot = document.getElementById('pwKeyDot');
+  btn.textContent = 'Getting...';
+  btn.disabled = true;
+  status.textContent = 'Requesting key...';
+  try {
+    const r = await fetch(VERIFY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ referrer: 'https://tipsguru.in/' })
+    });
+    const d = await r.json();
+    if (d.success) {
+      pwKeyValid = true;
+      dot.style.background = '#00e5a0';
+      status.textContent = '✓ Key active — 24hr access';
+      btn.textContent = 'Renew';
+      btn.disabled = false;
+      localStorage.setItem('pw_key_time', Date.now().toString());
+      pwLoadToday();
+    } else {
+      throw new Error('Failed');
+    }
+  } catch(e) {
+    dot.style.background = 'var(--danger)';
+    status.textContent = '✗ Key failed — try again';
+    btn.textContent = 'Retry';
+    btn.disabled = false;
+  }
+}
+
+function pwCheckKeyAge() {
+  const t = parseInt(localStorage.getItem('pw_key_time') || '0');
+  const dot = document.getElementById('pwKeyDot');
+  const status = document.getElementById('pwKeyStatus');
+  const btn = document.getElementById('pwKeyBtn');
+  if (!t) {
+    dot.style.background = 'var(--text3)';
+    status.textContent = 'No key — tap Get Key';
+    btn.textContent = 'Get Key';
+    return false;
+  }
+  const hrs = (Date.now() - t) / 3600000;
+  if (hrs < 22) {
+    pwKeyValid = true;
+    dot.style.background = '#00e5a0';
+    const rem = Math.floor(22 - hrs);
+    status.textContent = `✓ Key active — ~${rem}h remaining`;
+    btn.textContent = 'Renew';
+    return true;
+  } else {
+    dot.style.background = 'var(--warn)';
+    status.textContent = 'Key expired — tap Renew';
+    btn.textContent = 'Renew';
+    return false;
+  }
+}
+
+// ── Subject Detection ──
+function pwDetectSubject(text) {
+  const t = text.toLowerCase();
+  if (t.includes('saleem') || t.includes('physics') || t.includes('phy')) return 'physics';
+  if (t.includes('faisal') || t.includes('razaq') || t.includes('chem')) return 'chemistry';
+  if (t.includes('tarun') || t.includes('khandelwal') || t.includes('math') || t.includes('maths')) return 'maths';
+  return 'other';
+}
+
+function pwIsTargetTeacher(text) {
+  const t = text.toLowerCase();
+  return TARGET_TEACHERS.some(name => t.includes(name));
+}
+
+function pwSubjectLabel(subj) {
+  if (subj === 'physics') return '⚡ Physics';
+  if (subj === 'chemistry') return '🧪 Chemistry';
+  if (subj === 'maths') return '📐 Maths';
+  return '📖 General';
+}
+
+// ── Parse schedule HTML ──
+function pwParseSchedule(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const cards = doc.querySelectorAll('a.card, .card');
+  const classes = [];
+
+  cards.forEach(card => {
+    const topicEl = card.querySelector('.topic');
+    const subjectEl = card.querySelector('.subject');
+    const timeEl = card.querySelector('.time');
+    const statusEl = card.querySelector('.tag');
+    const href = card.getAttribute('href') || '';
+
+    if (!topicEl && !subjectEl) return;
+
+    const topic = topicEl ? topicEl.textContent.trim() : '';
+    const subject = subjectEl ? subjectEl.textContent.trim() : '';
+    const time = timeEl ? timeEl.textContent.trim().replace(/[^\d:APM ]/g,'').trim() : '';
+    const statusText = statusEl ? statusEl.textContent.trim().toLowerCase() : '';
+
+    const combined = topic + ' ' + subject;
+    if (!pwIsTargetTeacher(combined)) return;
+
+    let status = 'ended';
+    if (statusText.includes('live')) status = 'live';
+    else if (statusText.includes('upcoming')) status = 'upcoming';
+
+    const subj = pwDetectSubject(combined);
+    const mediaId = href.split('/').pop();
+
+    classes.push({ topic, subject, time, status, subj, mediaId, href });
+  });
+
+  return classes;
+}
+
+// ── Render Today ──
+async function pwLoadToday() {
+  const list = document.getElementById('pwTodayList');
+  list.innerHTML = '<div class="pw-loading">Loading today\'s classes</div>';
+  try {
+    const r = await fetch(BATCH_URL, { credentials: 'include' });
+    if (r.status === 302 || r.url.includes('keygenerate')) throw new Error('Need key');
+    const html = await r.text();
+    const classes = pwParseSchedule(html);
+
+    if (classes.length === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:0.8rem;">No classes found for today<br><span style="font-size:0.65rem;margin-top:4px;display:block;">Try refreshing or check rarestudy.site</span></div>';
+      return;
+    }
+
+    list.innerHTML = classes.map(c => pwRenderCard(c)).join('');
+  } catch(e) {
+    if (e.message === 'Need key') {
+      list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--warn);font-size:0.8rem;">🔑 Key required<br><button onclick="pwGetKey()" style="margin-top:10px;background:rgba(108,99,255,0.12);color:var(--accent);border:1.5px solid rgba(108,99,255,0.3);border-radius:8px;padding:8px 16px;cursor:pointer;font-family:\'Syne\',sans-serif;font-weight:700;">Get Key Now</button></div>';
+    } else {
+      list.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);font-size:0.75rem;">Error loading. Check connection.<br><small>${e.message}</small></div>`;
+    }
+  }
+}
+
+// ── Render Batch ──
+async function pwLoadBatch() {
+  const list = document.getElementById('pwBatchList');
+  list.innerHTML = '<div class="pw-loading">Loading batch content</div>';
+  try {
+    const r = await fetch(BATCHES_URL);
+    const data = await r.json();
+    pwBatchData = data;
+    pwRenderBatch(data);
+  } catch(e) {
+    list.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);font-size:0.75rem;">Error loading batch data.<br><small>${e.message}</small></div>`;
+  }
+}
+
+function pwRenderBatch(data) {
+  const list = document.getElementById('pwBatchList');
+  const batches = data.batches || [];
+  const myBatch = batches.find(b => b.name && b.name.includes('Lakshya JEE 2027')) || batches[0];
+
+  if (!myBatch) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Batch not found</div>';
+    return;
+  }
+
+  const subjects = [
+    { key: 'physics', label: '⚡ Physics', teacher: 'Saleem Ahmed Sir', color: 'var(--physics)' },
+    { key: 'chemistry', label: '🧪 Chemistry', teacher: 'Faisal Razaq Sir', color: 'var(--chemistry)' },
+    { key: 'maths', label: '📐 Maths', teacher: 'Tarun Khandelwal Sir', color: 'var(--maths)' },
+  ];
+
+  let html = '';
+
+  // Batch info card
+  html += `<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px;margin-bottom:12px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--text);margin-bottom:4px;">${myBatch.name || 'Lakshya JEE 2027'}</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text3);">${myBatch.startDate || ''} → ${myBatch.endDate || ''} · Hinglish</div>
+    <div style="margin-top:8px;display:flex;gap:6px;">
+      <span style="background:rgba(0,229,160,0.08);color:var(--accent3);border:1px solid rgba(0,229,160,0.2);border-radius:20px;padding:2px 10px;font-family:'IBM Plex Mono',monospace;font-size:0.58rem;">FREE via RareStudy</span>
+      <span style="background:rgba(108,99,255,0.08);color:var(--accent);border:1px solid rgba(108,99,255,0.2);border-radius:20px;padding:2px 10px;font-family:'IBM Plex Mono',monospace;font-size:0.58rem;">3 Subjects</span>
+    </div>
+  </div>`;
+
+  subjects.forEach(s => {
+    if (pwCurrentFilter !== 'all' && pwCurrentFilter !== s.key) return;
+    html += `<div class="pw-batch-section">
+      <div class="pw-batch-section-title" style="color:${s.color};">${s.label} <span style="color:var(--text3);font-weight:400;">${s.teacher}</span></div>
+      <div class="pw-class-card pw-${s.key}" onclick="pwOpenBatchSubject('${s.key}')">
+        <div class="pw-card-head">
+          <div class="pw-subj">${s.label}</div>
+          <span class="pw-status-tag pw-tag-upcoming">VIEW →</span>
+        </div>
+        <div class="pw-topic">${s.teacher}</div>
+        <div class="pw-btn-row">
+          <button class="pw-watch-btn" onclick="event.stopPropagation();pwOpenBatchSubject('${s.key}')">📚 View Lectures</button>
+          <button class="pw-notes-btn" onclick="event.stopPropagation();pwOpenRarestudy()">🌐 Open</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+function pwOpenBatchSubject(subj) {
+  window.open('https://rarestudy.site/batches', '_blank');
+}
+
+function pwOpenRarestudy() {
+  window.open('https://rarestudy.site/batches', '_blank');
+}
+
+// ── Render single class card ──
+function pwRenderCard(c) {
+  const tagClass = c.status === 'live' ? 'pw-tag-live' : c.status === 'upcoming' ? 'pw-tag-upcoming' : 'pw-tag-ended';
+  const tagText = c.status === 'live' ? '🔴 LIVE' : c.status === 'upcoming' ? '⏰ UPCOMING' : '✓ ENDED';
+  const subjLabel = pwSubjectLabel(c.subj);
+
+  return `<div class="pw-class-card pw-${c.subj}">
+    <div class="pw-card-head">
+      <div class="pw-subj">${subjLabel}</div>
+      <span class="pw-status-tag ${tagClass}">${tagText}</span>
+    </div>
+    <div class="pw-topic">${c.topic || c.subject}</div>
+    <div class="pw-time">${c.subject}${c.time ? ' · ' + c.time : ''}</div>
+    <div class="pw-btn-row">
+      <button class="pw-watch-btn" onclick="pwWatchClass('${c.mediaId}','${(c.topic||c.subject).replace(/'/g,"\\'")}')">▶ Watch</button>
+      <button class="pw-notes-btn" onclick="window.open('https://rarestudy.site${c.href}','_blank')">📄 Notes</button>
+    </div>
+  </div>`;
+}
+
+// ── Video Player ──
+async function pwWatchClass(mediaId, title) {
+  if (!mediaId) {
+    alert('Video not available');
+    return;
+  }
+
+  const overlay = document.getElementById('pwVideoOverlay');
+  const video = document.getElementById('pwVideoEl');
+  const titleEl = document.getElementById('pwVideoTitle');
+  const statusEl = document.getElementById('pwVideoStatus');
+
+  overlay.style.display = 'flex';
+  titleEl.textContent = title;
+  statusEl.textContent = 'Loading stream...';
+  video.src = '';
+
+  try {
+    const url = mediaId.startsWith('http')
+      ? mediaId
+      : `https://rarestudy.site/media/${mediaId}`;
+
+    const r = await fetch(url, { credentials: 'include' });
+    const html = await r.text();
+
+    // Extract VIDEO_DATA
+    const match = html.match(/const VIDEO_DATA\s*=\s*({.+?});/s);
+    if (!match) throw new Error('No video data found');
+
+    const videoData = JSON.parse(match[1].replace(/\bu002[6F]\b/g, '&').replace(/\\u0026/g,'&').replace(/\\u003D/g,'='));
+    const m3u8 = videoData.m3u8_url;
+
+    if (!m3u8) throw new Error('No stream URL');
+
+    statusEl.textContent = 'Stream found! Loading...';
+
+    // Load HLS
+    if (window.Hls && Hls.isSupported()) {
+      if (pwVideoHls) { pwVideoHls.destroy(); }
+      pwVideoHls = new Hls({ enableWorker: false });
+      pwVideoHls.loadSource(m3u8);
+      pwVideoHls.attachMedia(video);
+      pwVideoHls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play();
+        statusEl.textContent = '';
+      });
+      pwVideoHls.on(Hls.Events.ERROR, (e, d) => {
+        if (d.fatal) statusEl.textContent = 'Stream error — try opening in browser';
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = m3u8;
+      video.play();
+      statusEl.textContent = '';
+    } else {
+      // Fallback — open in rarestudy
+      overlay.style.display = 'none';
+      window.open(url, '_blank');
+    }
+  } catch(e) {
+    statusEl.textContent = `Error: ${e.message} — Opening in browser...`;
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      window.open(`https://rarestudy.site/media/${mediaId}`, '_blank');
+    }, 1500);
+  }
+}
+
+function pwCloseVideo() {
+  const overlay = document.getElementById('pwVideoOverlay');
+  const video = document.getElementById('pwVideoEl');
+  overlay.style.display = 'none';
+  video.pause();
+  video.src = '';
+  if (pwVideoHls) { pwVideoHls.destroy(); pwVideoHls = null; }
+}
+
+// ── Sub tab switch ──
+function pwSwitchSub(name) {
+  ['today','batch'].forEach(n => {
+    document.getElementById('pwpanel-'+n).style.display = n === name ? '' : 'none';
+    document.getElementById('pwtab-'+n).classList.toggle('active', n === name);
+  });
+  if (name === 'batch' && !pwBatchData) pwLoadBatch();
+}
+
+// ── Filter ──
+function pwFilterSubject(subj) {
+  pwCurrentFilter = subj;
+  document.querySelectorAll('.pw-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.subj === subj);
+  });
+  if (pwBatchData) pwRenderBatch(pwBatchData);
+}
+
+// ── Init ──
+window.pwTabInit = function() {
+  pwCheckKeyAge();
+  pwLoadToday();
+};
+
+window.pwGetKey = pwGetKey;
+window.pwLoadToday = pwLoadToday;
+window.pwLoadBatch = pwLoadBatch;
+window.pwSwitchSub = pwSwitchSub;
+window.pwFilterSubject = pwFilterSubject;
+window.pwWatchClass = pwWatchClass;
+window.pwCloseVideo = pwCloseVideo;
+window.pwOpenRarestudy = pwOpenRarestudy;
+window.pwOpenBatchSubject = pwOpenBatchSubject;
+
+// Load HLS.js dynamically
+if (!window.Hls) {
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+  document.head.appendChild(s);
+}
+
 })();
 </script>
