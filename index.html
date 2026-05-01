@@ -2162,20 +2162,7 @@ body::after {
   </div><!-- /tab-tests -->
 
   <!-- AI TAB -->
-  <div class="tab-content" id="tab-syllabus" style="position:fixed;top:0;left:0;right:0;bottom:56px;z-index:10;">
-    <!--
-      PROXY URL: Replace YOUR-WORKER-NAME.YOUR-CF-SUBDOMAIN.workers.dev
-      with your actual Cloudflare Worker URL after deploying worker.js
-    -->
-    <iframe
-      id="pwStreamFrame"
-      src="https://fancy-waterfall-618a.ianvsk69.workers.dev/subjects?batchId=6779345c20fa0756e4a7fd08&batchName=Lakshya+JEE+2027"
-      style="width:100%;height:100%;border:none;display:block;background:#080810;"
-      allowfullscreen
-      allow="fullscreen; autoplay; encrypted-media; clipboard-read; clipboard-write"
-      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-    ></iframe>
-  </div>
+  <div class="tab-content" id="tab-syllabus" style="display:none;"></div>
 
   <!-- VIDEO PLAYER OVERLAY -->
   <div id="pwVideoOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:99999;flex-direction:column;">
@@ -2209,7 +2196,7 @@ body::after {
     </span>
     Performance
   </button>
-  <button class="nav-btn" id="nav-syllabus" onclick="switchTab('syllabus')">
+  <button class="nav-btn" id="nav-syllabus" onclick="window.location.href='https://stream.testuk.org/subjects?batchId=6779345c20fa0756e4a7fd08&batchName=Lakshya+JEE+2027'">
     <span class="nav-icon">
       <img src="https://images.seeklogo.com/logo-png/47/1/physics-wallah-logo-png_seeklogo-474856.png" alt="PW" style="width:22px;height:22px;object-fit:contain;display:inline-block;vertical-align:middle;border-radius:4px;">
     </span>
@@ -2677,6 +2664,7 @@ function init(){
 //  TAB SWITCHING
 // ═══════════════════════════════════════════
 function switchTab(name){
+  if(name==='syllabus'){ window.location.href='https://stream.testuk.org/subjects?batchId=6779345c20fa0756e4a7fd08&batchName=Lakshya+JEE+2027'; return; }
   ['home','study','tests','syllabus'].forEach(n=>{
     const c=document.getElementById('tab-'+n);
     const btn=document.getElementById('nav-'+n);
