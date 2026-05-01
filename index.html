@@ -12,7 +12,7 @@
 <meta name="theme-color" content="#080810">
 <link rel="manifest" href="manifest.json">
 <!-- PWA Icons (inline fallback) -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%23080810'/><text x='96' y='130' font-size='100' text-anchor='middle'>⚡</text></svg>">
+<link rel="apple-touch-icon" href="icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1825,8 +1825,13 @@ body::after {
     <div style="display:flex;align-items:center;gap:8px;">
       <button id="hamburgerBtn" onclick="openDrawer()" title="Menu">|||</button>
       <div class="header-left">
-        <div class="brand"><span class="jee">JEE </span><span class="cc">Command<br>Centre</span></div>
-        <div class="brand-sub">⚡ Lakshya 2027</div>
+        <div class="brand" style="display:flex;align-items:center;gap:10px;">
+          <img src="icon-512.png" alt="JCC Logo" style="width:42px;height:42px;border-radius:8px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(108,99,255,0.5));">
+          <div>
+            <div><span class="jee">JEE </span><span class="cc">Command<br>Centre</span></div>
+            <div class="brand-sub">⚡ Lakshya 2027</div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="header-right" id="headerRight" style="flex-direction:row;align-items:center;gap:8px;">
