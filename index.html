@@ -316,6 +316,22 @@ body::after {
 .tab-content { display:none; }
 .tab-content.active { display:block; animation: tabIn 0.2s ease; }
 
+/* ── HEADER VISIBILITY: only show on home tab ── */
+body:not(.tab-home) .header { display:none !important; }
+
+/* ── MINIMAL TAB TITLE ── */
+.tab-page-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  margin-bottom: 10px;
+  padding: 0;
+  text-align: left;
+  display: block;
+}
+
 /* ── CARD ── */
 .card { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; }
 
@@ -2082,7 +2098,7 @@ body::after {
 
   <!-- STUDY TAB -->
   <div class="tab-content" id="tab-study">
-    <div class="tab-section-lbl">JEE Command Centre</div>
+    <div class="tab-page-title">Study</div>
     <div class="study-subtabs">
       <button class="study-subtab active" id="stab-tasks" onclick="switchStudyTab('tasks')">✅ Tasks</button>
       <button class="study-subtab" id="stab-tracker" onclick="switchStudyTab('tracker')">⏱ Study Tracker</button>
@@ -2182,7 +2198,7 @@ body::after {
 
   <!-- PERFORMANCE TAB -->
   <div class="tab-content" id="tab-tests">
-    <div class="tab-section-lbl">JEE Command Centre</div>
+    <div class="tab-page-title">Performance</div>
 
     <!-- SECTION TOGGLE -->
     <div class="perf-toggle">
@@ -2863,6 +2879,8 @@ function switchTab(name){
   });
   document.getElementById('tab-'+name).style.display='';
   document.getElementById('tab-'+name).classList.add('active');
+  // Show header only on home tab
+  document.body.classList.toggle('tab-home', name==='home');
   if(name==='tests'){ renderUpcomingTests(); updateSylProgress(); }
   if(name==='study') renderTimeBreakdown(todayStr());
   if(name==='home') renderAlerts(todayStr(),new Date().getDay());
@@ -5286,6 +5304,8 @@ function launchApp(pin, binId, name='') {
   // Hide overlay, show app
   document.getElementById('authOverlay').style.display = 'none';
   document.getElementById('mainApp').style.display = '';
+  // Home tab is active by default
+  document.body.classList.add('tab-home');
 
   // Username is only shown in drawer, not in header
   // (pinBadge in header is hidden)
